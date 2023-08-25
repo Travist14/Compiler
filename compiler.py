@@ -7,7 +7,7 @@ def main():
     parser.add_argument('file', help='the file to be compiled')
     parser.add_argument('-t', '--tokenize', help='tokenize the file', action='store_true')
     args = parser.parse_args()
-
+    
     with open(args.file, 'r') as f:
         text = f.read()
     assert type(text) == str, "text should be a string"
