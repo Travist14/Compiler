@@ -2,12 +2,6 @@ from typing import NamedTuple
 from dataclasses import dataclass
 import re
 
-# class Token(NamedTuple):
-#     type: str
-#     value: str
-#     line: int
-#     column: int
-
 @dataclass
 class Token():
     type: str
