@@ -1,3 +1,5 @@
+// An Example C file to use for testing 
+
 #include <stdio.h>
 
 #define MAX 100
