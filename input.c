@@ -8,6 +8,11 @@ int add(int *a, int *b) {
     return *a + *b;
 }
 
+void print(int *a, int *b) {
+    printf("a = %d\n", *a);
+    printf("b = %d\n", *b);
+}
+
 int main() {
     int a = 3;
     int b = 4;

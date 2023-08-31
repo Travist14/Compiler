@@ -1,6 +1,5 @@
 import argparse
 
-# from tokenizer import tokenize, print_tokens
 from tokenizer import tokenize, print_tokens
 
 def main():
