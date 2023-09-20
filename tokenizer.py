@@ -91,6 +91,7 @@ def tokenize(code):
     return tokens
 
 def print_tokens(tokens):
+    print(f"There are {len(tokens)} tokens in the file")
     print(f"Tokens in input C file:\n")
     for tok in tokens:
         print(tok)
