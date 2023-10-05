@@ -5,7 +5,7 @@ from tokenizer import tokenize
 
 index = 0
 errors = []
-symbol_table = {}
+symbol_table = []
 
 class ParseError(Exception):
     def __init__(self, message, token):
@@ -19,6 +19,7 @@ class ParseError(Exception):
 
 # heavily inspired by the parse tree that we went over in class 
 def parse_expression(tokens):
+    global symbol_table
     global index
     global errors
 
@@ -46,6 +47,7 @@ def parse_expression(tokens):
 
 # heavily inspired by the parse tree that we went over in class 
 def parse_term(tokens):
+    global symbol_table
     global index
     global errors
 
@@ -73,6 +75,7 @@ def parse_term(tokens):
 
 # heavily inspired by the parse tree that we went over in class 
 def parse_factor(tokens):
+    global symbol_table
     global index
     global errors
 
@@ -102,6 +105,7 @@ def parse_factor(tokens):
 
 # parse declaration will only parse int declarations and does not support assignment
 def parse_declaration(tokens):
+    global symbol_table
     global index
     global errors
 
@@ -111,6 +115,8 @@ def parse_declaration(tokens):
     if index < len(tokens) and tokens[index].type == "int": # Only aceepting int declarations 
         f["children"].append({"value": "int"})
         index += 1
+        
+        symbol_table.append({"variable_name": tokens[index - 1].value, "type": tokens[index - 1].value})
     else:
         errors.append(ParseError("Expected an int to be declared", tokens[index]))
 
@@ -129,8 +135,10 @@ def parse_declaration(tokens):
 
 
 def parse_assignment(tokens):
+    global symbol_table
     global index
     global errors
+
 
     f = {"children": [], "value": None}
     f["value"] = "ASSIGNMENT"
@@ -163,6 +171,7 @@ def parse_assignment(tokens):
 
 
 def parse_statement(tokens):
+    global symbol_table
     global index
     global errors
 
@@ -210,6 +219,7 @@ def parse_statement(tokens):
 
 # main program parser 
 def parse_program(tokens):
+    global symbol_table
     global index
     global errors
 
@@ -292,6 +302,8 @@ def parse(text, filename, debug):
     if debug: 
         for tok in tokens:
             print(tok)
+        
+        print(f"\n\nSymbol Table: {symbol_table}\n")
     
     tree = parse_program(tokens)
     
@@ -300,7 +312,7 @@ def parse(text, filename, debug):
     return tree
 
 
-# prints out the parse tree in a nice format
+# # prints out the parse tree in a nice format
 def print_parse_tree(tree, indent=0):
     if tree is None:
         return
@@ -309,5 +321,6 @@ def print_parse_tree(tree, indent=0):
         print(" " * indent + str(tree["value"]))
 
     for child in tree["children"]:
-        print_parse_tree(child, indent + 2)
+        if child:
+            print_parse_tree(child, indent + 2)
 

@@ -27,12 +27,13 @@ def main():
         print_tokens(tokens)
     elif args.parse:
         text = read_file(args.file)
-        tree = parse(text, args.file, args.debug) # Debug will print tokens along with parse tree
+        tree = parse(text, args.file, args.debug) # Debug will print tokens and other info like index number and recursion order 
         if tree is not None:
             print("-" * 60)
-            print("\n\tParse Tree:")
+            print("\n\tParse Tree:\n")
             print(tree)
             print("\n")
+            # print_parse_tree(tree)
 
 if __name__ == '__main__':
     main()
