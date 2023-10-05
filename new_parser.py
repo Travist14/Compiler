@@ -19,6 +19,7 @@ class ParseError(Exception):
 
 # heavily inspired by the parse tree that we went over in class 
 def parse_expression(tokens):
+    print("Parsing Expression")
     global index
     global errors
 
@@ -46,6 +47,7 @@ def parse_expression(tokens):
 
 # heavily inspired by the parse tree that we went over in class 
 def parse_term(tokens):
+    print("Parsing term")
     global index
     global errors
 
@@ -73,6 +75,7 @@ def parse_term(tokens):
 
 # heavily inspired by the parse tree that we went over in class 
 def parse_factor(tokens):
+    print("Parsing factor")
     global index
     global errors
 
@@ -125,6 +128,7 @@ def handle_errors(filename):
 
 # parse declaration will only parse int declarations and does not support assignment
 def parse_declaration(tokens):
+    print("Parsing declaration")
     global index
     global errors
 
@@ -150,7 +154,9 @@ def parse_declaration(tokens):
 
     return f 
 
+
 def parse_assignment(tokens):
+    print("Parsing assignment")
     global index
     global errors
 
@@ -175,15 +181,17 @@ def parse_assignment(tokens):
     else:
         errors.append(ParseError("Expected expression for assignment", tokens[index]))
 
-    if index < len(tokens) and tokens[index].type == "SEMICOLON":
-        index += 1
-    else:
-        errors.append(ParseError("Expected ';' for assignment", tokens[index]))
+    # TODO: maybe remove this 
+    # if index < len(tokens) and tokens[index].type == "SEMICOLON":
+    #     index += 1
+    # else:
+    #     errors.append(ParseError("Expected ';' for assignment", tokens[index]))
 
     return f
 
 
 def parse_statement(tokens):
+    print("Parsing statement")
     global index
     global errors
 
@@ -212,66 +220,26 @@ def parse_statement(tokens):
         else:
             errors.append(ParseError("Expected declaration", tokens[index]))
     elif index < len(tokens) and tokens[index].type == "ID":
-        while index < len(tokens) and tokens[index].type == "ID":
-            assignment = parse_assignment(tokens)
-            if assignment:
-                f["children"].append(assignment)
-            else :
-                errors.append(ParseError("Expected assignment", tokens[index]))
+        assignment = parse_assignment(tokens)
+        if assignment:
+            f["children"].append(assignment)
+        else :
+            errors.append(ParseError("Expected assignment", tokens[index]))
 
-            # STUFF RIGHT HERE
-            if index < len(tokens) and tokens[index].type == "SEMICOLON":
-                index += 1
-            else:
-                errors.append(ParseError("Expected ';'", tokens[index]))
+        # # STUFF RIGHT HERE
+        if index < len(tokens) and tokens[index].type == "SEMICOLON":
+            index += 1
+        else:
+            errors.append(ParseError("Expected ';'", tokens[index]))
     else:
         errors.append(ParseError("Expected 'return' or 'int'", tokens[index]))
 
     return f
         
 
-# def parse_statement(tokens):
-#     global index
-#     global errors
-
-#     f = {"children": [], "value": None}
-#     f["value"] = "STATEMENT"
-
-#     if index < len(tokens) and tokens[index].type == "return" and tokens[index].value == "return":
-#         f["children"].append({"value": "return"})
-#         index += 1
-
-#         expr = parse_expression(tokens)
-#         if expr:
-#             f["children"].append(expr)
-#         else:
-#             errors.append(ParseError("Expected expression", tokens[index]))
-
-#         if index < len(tokens) and tokens[index].type == "SEMICOLON":
-#             index += 1
-#         else:
-#             errors.append(ParseError("Expected ';'", tokens[index]))
-#     elif index < len(tokens) and tokens[index].type == "int":
-#         print(index)
-#         decl = parse_declaration(tokens)
-#         if decl:
-#             f["children"].append(decl)
-#         else:
-#             errors.append(ParseError("Expected declaration", tokens[index]))
-#     elif index < len(tokens) and tokens[index].type == "ID":
-#         assign_op = parse_assignment(tokens)
-#         if assign_op:
-#             f["children"].append(assign_op)
-#         else:
-#             errors.append(ParseError("Expected assignment", tokens[index]))
-#     else:
-#         errors.append(ParseError("Expected 'return' or 'int'", tokens[index]))
-
-#     return f
-
-
 # main program parser 
 def parse_program(tokens):
+    print("Parsing program")
     global index
     global errors
 
@@ -305,13 +273,14 @@ def parse_program(tokens):
     else:
         errors.append(ParseError("Expected '{'", tokens[index]))
 
-    statement = parse_statement(tokens)
-    if statement:
-        f["children"].append(statement)
+    while index < (len(tokens) - 1):
+        print(index)
+        statement = parse_statement(tokens)
+        if statement:
+            f["children"].append(statement)
 
-    else:
-        errors.append(ParseError("Expected statement", tokens[index]))
-
+        else:
+            errors.append(ParseError("Expected statement", tokens[index]))
 
     if index < len(tokens) and tokens[index].type == "RBRACE":
         index += 1
