@@ -1,10 +1,11 @@
 import sys
-import colorama 
+import colorama
 
 from tokenizer import tokenize
 
 index = 0
 errors = []
+symbol_table = {}
 
 class ParseError(Exception):
     def __init__(self, message, token):
@@ -99,6 +100,164 @@ def parse_factor(tokens):
     return f
 
 
+# parse declaration will only parse int declarations and does not support assignment
+def parse_declaration(tokens):
+    global index
+    global errors
+
+    f = {"children": [], "value": None}
+    f["value"] = "DECLARATION"
+    
+    if index < len(tokens) and tokens[index].type == "int": # Only aceepting int declarations 
+        f["children"].append({"value": "int"})
+        index += 1
+    else:
+        errors.append(ParseError("Expected an int to be declared", tokens[index]))
+
+    if index < len(tokens) and tokens[index].type == "ID":
+        f["children"].append({"value": tokens[index].value})
+        index += 1
+    else:
+        errors.append(ParseError("Expected an ID after declaring an int", tokens[index]))
+
+    if index < len(tokens) and tokens[index].type == "SEMICOLON":
+        index += 1
+    else:
+        errors.append(ParseError("Expected ';'", tokens[index]))
+
+    return f 
+
+
+def parse_assignment(tokens):
+    global index
+    global errors
+
+    f = {"children": [], "value": None}
+    f["value"] = "ASSIGNMENT"
+
+    if index < len(tokens) and tokens[index].type == "ID":
+        f["children"].append({"value": tokens[index].value})
+        index += 1
+    else:
+        errors.append(ParseError("Expected an ID for assignment", tokens[index]))
+
+    if index < len(tokens) and tokens[index].type == "ASSIGN":
+        f["children"].append({"value": "="})
+        index += 1
+    else:
+        errors.append(ParseError("Expected '=' for assignment", tokens[index]))
+
+    expr = parse_expression(tokens)
+    if expr:
+        f["children"].append(expr)
+    else:
+        errors.append(ParseError("Expected expression for assignment", tokens[index]))
+
+    # TODO: maybe remove this? I dont know why this isn't needed but it double counts the last semicolon in the file if this is here. maybe index is being thrown off
+    # if index < len(tokens) and tokens[index].type == "SEMICOLON":
+    #     index += 1
+    # else:
+    #     errors.append(ParseError("Expected ';' for assignment", tokens[index]))
+
+    return f
+
+
+def parse_statement(tokens):
+    global index
+    global errors
+
+    f = {"children": [], "value": None}
+    f["value"] = "STATEMENT"
+    
+    if index < len(tokens) and tokens[index].type == "return" and tokens[index].value == "return":
+        f["children"].append({"value": "return"})
+        index += 1 
+        
+        expr = parse_expression(tokens)
+        if expr:
+            f["children"].append(expr)
+        else:
+            errors.append(ParseError("Expected expression", tokens[index]))
+
+        if index < len(tokens) and tokens[index].type == "SEMICOLON":
+            index += 1 
+        else:
+            errors.append(ParseError("Expected ';'", tokens[index]))
+
+    elif index < len(tokens) and tokens[index].type == "int":
+        declaration = parse_declaration(tokens)
+        if declaration:
+            f["children"].append(declaration)
+        else:
+            errors.append(ParseError("Expected declaration", tokens[index]))
+    elif index < len(tokens) and tokens[index].type == "ID":
+        assignment = parse_assignment(tokens)
+        if assignment:
+            f["children"].append(assignment)
+        else :
+            errors.append(ParseError("Expected assignment", tokens[index]))
+
+        # # STUFF RIGHT HERE
+        if index < len(tokens) and tokens[index].type == "SEMICOLON":
+            index += 1
+        else:
+            errors.append(ParseError("Expected ';'", tokens[index]))
+    else:
+        errors.append(ParseError("Expected 'return' or 'int'", tokens[index]))
+
+    return f
+        
+
+# main program parser 
+def parse_program(tokens):
+    global index
+    global errors
+
+    f = {"children": [], "value": None}
+    f["value"] = "PROGRAM"
+
+    if index < len(tokens) and tokens[index].type == "int" and tokens[index].value == "int":
+        f["children"].append({"value": "int"})
+        index += 1
+    else:
+        errors.append(ParseError("Expected 'int'", tokens[index]))
+
+    if index < len(tokens) and tokens[index].type == "ID" and tokens[index].value == "main":
+        f["children"].append({"value": "main"})
+        index += 1
+    else:
+        errors.append(ParseError("Expected 'main'", tokens[index]))
+
+    if index < len(tokens) and tokens[index].type == "L_PAREN":
+        index += 1
+    else:
+        errors.append(ParseError("Expected '('", tokens[index]))
+
+    if index < len(tokens) and tokens[index].type == "R_PAREN":
+        index += 1
+    else:
+        errors.append(ParseError("Expected ')'", tokens[index]))
+
+    if index < len(tokens) and tokens[index].type == "LBRACE":
+        index += 1
+    else:
+        errors.append(ParseError("Expected '{'", tokens[index]))
+
+    while index < (len(tokens) - 1):
+        statement = parse_statement(tokens)
+        if statement:
+            f["children"].append(statement)
+
+        else:
+            errors.append(ParseError("Expected statement", tokens[index]))
+
+    if index < len(tokens) and tokens[index].type == "RBRACE":
+        index += 1
+    else:
+        errors.append(ParseError("Expected '}'", tokens[index]))
+
+    return f
+
 # iterates over all the errors and print them out in a nice format 
 def handle_errors(filename):
     if len(errors) > 0:
@@ -120,17 +279,35 @@ def handle_errors(filename):
             print(f"\t\t{' ' * (col)}{colorama.Fore.RED}^{colorama.Fore.RESET}")
             print(f"\t{colorama.Fore.RED}{message}{colorama.Fore.RESET}\n")
 
-        sys.exit(1)  
+        sys.exit(1) 
+
 
 # main parse function, need to pass in filename for printing errors
 # TODO: sure there is a better way to do this but it works for right now 
-def parse(text, filename):
+def parse(text, filename, debug):
     tokens = tokenize(text)
     if type(tokens) != list:
         raise ValueError("tokenize should return a list of tokens")
     
-    tree = parse_expression(tokens)
+    if debug: 
+        for tok in tokens:
+            print(tok)
+    
+    tree = parse_program(tokens)
     
     handle_errors(filename)
     
     return tree
+
+
+# prints out the parse tree in a nice format
+def print_parse_tree(tree, indent=0):
+    if tree is None:
+        return
+
+    if tree["value"] is not None:
+        print(" " * indent + str(tree["value"]))
+
+    for child in tree["children"]:
+        print_parse_tree(child, indent + 2)
+
