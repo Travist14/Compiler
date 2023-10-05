@@ -161,7 +161,7 @@ def parse_assignment(tokens):
     else:
         errors.append(ParseError("Expected expression for assignment", tokens[index]))
 
-    # TODO: maybe remove this? I dont know why this isn't needed but it double counts the last semicolon in the file if this is here. maybe index is being thrown off
+    # TODO: maybe remove this? I dont know why this isn't needed but it double counts the last semicolon in the file if this is here. maybe index is being thrown off, investigate later
     # if index < len(tokens) and tokens[index].type == "SEMICOLON":
     #     index += 1
     # else:
@@ -294,16 +294,7 @@ def handle_errors(filename):
 
 # main parse function, need to pass in filename for printing errors
 # TODO: sure there is a better way to do this but it works for right now 
-def parse(text, filename, debug):
-    tokens = tokenize(text)
-    if type(tokens) != list:
-        raise ValueError("tokenize should return a list of tokens")
-    
-    if debug: 
-        for tok in tokens:
-            print(tok)
-        
-        print(f"\n\nSymbol Table: {symbol_table}\n")
+def parse(tokens, filename, debug):
     
     tree = parse_program(tokens)
     
@@ -311,16 +302,12 @@ def parse(text, filename, debug):
     
     return tree
 
-
-# # prints out the parse tree in a nice format
+# print the parse tree in a nice format
 def print_parse_tree(tree, indent=0):
-    if tree is None:
-        return
-
-    if tree["value"] is not None:
-        print(" " * indent + str(tree["value"]))
-
-    for child in tree["children"]:
-        if child:
-            print_parse_tree(child, indent + 2)
-
+    indentation = " " * indent
+    print(f"{indentation}{tree['value']}")
+    if 'children' in tree:
+        for child in tree['children']:
+            print(f"{indentation}")
+            print_parse_tree(child, indent + 4)
+        
