@@ -1,7 +1,8 @@
 import argparse
 
 from tokenizer import tokenize, print_tokens
-from parser import parse
+# from Parser import parse, print_parse_tree
+from new_parser import parse, print_parse_tree
 
 def read_file(filename):
     with open(filename, 'r') as f:
@@ -26,9 +27,12 @@ def main():
         print_tokens(tokens)
     elif args.parse:
         text = read_file(args.file)
-        tree = parse(text, args.file)
-        print(tree)
-    
+        tree = parse(text, args.file, DEBUG=True) # Debug here will print tokens along with parse tree
+        if tree is not None:
+            print("-" * 60)
+            print("\n\tParse Tree:")
+            print(tree)
+            print("\n")
 
 if __name__ == '__main__':
     main()
