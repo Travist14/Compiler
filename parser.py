@@ -296,6 +296,8 @@ def handle_errors(filename):
 # TODO: sure there is a better way to do this but it works for right now 
 def parse(tokens, filename, debug):
     
+    # this is a test testing testing one two three
+    
     tree = parse_program(tokens)
     
     handle_errors(filename)
