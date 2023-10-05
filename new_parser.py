@@ -19,7 +19,6 @@ class ParseError(Exception):
 
 # heavily inspired by the parse tree that we went over in class 
 def parse_expression(tokens):
-    print("Parsing Expression")
     global index
     global errors
 
@@ -47,7 +46,6 @@ def parse_expression(tokens):
 
 # heavily inspired by the parse tree that we went over in class 
 def parse_term(tokens):
-    print("Parsing term")
     global index
     global errors
 
@@ -75,7 +73,6 @@ def parse_term(tokens):
 
 # heavily inspired by the parse tree that we went over in class 
 def parse_factor(tokens):
-    print("Parsing factor")
     global index
     global errors
 
@@ -103,32 +100,8 @@ def parse_factor(tokens):
     return f
 
 
-# iterates over all the errors and print them out in a nice format 
-def handle_errors(filename):
-    if len(errors) > 0:
-        locations = []
-        for error in errors:
-            tok = error.token
-            line_number = tok.line
-            col = tok.column
-            message = error.message
-            locations.append((line_number, col, message))
-
-        print(f"\n\t{colorama.Fore.YELLOW}{len(errors)} errors found in {filename}{colorama.Fore.RESET}\n")
-        with open(filename, "r") as f:
-            lines = f.readlines()
-        for line_number, col, message in locations:
-            print(f"\tLine {line_number} Column {col}:")
-            line = lines[line_number - 1]
-            print(f"\t\t{line}")
-            print(f"\t\t{' ' * (col)}{colorama.Fore.RED}^{colorama.Fore.RESET}")
-            print(f"\t{colorama.Fore.RED}{message}{colorama.Fore.RESET}\n")
-
-        sys.exit(1)  
-
 # parse declaration will only parse int declarations and does not support assignment
 def parse_declaration(tokens):
-    print("Parsing declaration")
     global index
     global errors
 
@@ -156,7 +129,6 @@ def parse_declaration(tokens):
 
 
 def parse_assignment(tokens):
-    print("Parsing assignment")
     global index
     global errors
 
@@ -181,7 +153,7 @@ def parse_assignment(tokens):
     else:
         errors.append(ParseError("Expected expression for assignment", tokens[index]))
 
-    # TODO: maybe remove this 
+    # TODO: maybe remove this? I dont know why this isn't needed but it double counts the last semicolon in the file if this is here. maybe index is being thrown off
     # if index < len(tokens) and tokens[index].type == "SEMICOLON":
     #     index += 1
     # else:
@@ -191,7 +163,6 @@ def parse_assignment(tokens):
 
 
 def parse_statement(tokens):
-    print("Parsing statement")
     global index
     global errors
 
@@ -239,7 +210,6 @@ def parse_statement(tokens):
 
 # main program parser 
 def parse_program(tokens):
-    print("Parsing program")
     global index
     global errors
 
@@ -274,7 +244,6 @@ def parse_program(tokens):
         errors.append(ParseError("Expected '{'", tokens[index]))
 
     while index < (len(tokens) - 1):
-        print(index)
         statement = parse_statement(tokens)
         if statement:
             f["children"].append(statement)
@@ -289,14 +258,38 @@ def parse_program(tokens):
 
     return f
 
+# iterates over all the errors and print them out in a nice format 
+def handle_errors(filename):
+    if len(errors) > 0:
+        locations = []
+        for error in errors:
+            tok = error.token
+            line_number = tok.line
+            col = tok.column
+            message = error.message
+            locations.append((line_number, col, message))
+
+        print(f"\n\t{colorama.Fore.YELLOW}{len(errors)} errors found in {filename}{colorama.Fore.RESET}\n")
+        with open(filename, "r") as f:
+            lines = f.readlines()
+        for line_number, col, message in locations:
+            print(f"\tLine {line_number} Column {col}:")
+            line = lines[line_number - 1]
+            print(f"\t\t{line}")
+            print(f"\t\t{' ' * (col)}{colorama.Fore.RED}^{colorama.Fore.RESET}")
+            print(f"\t{colorama.Fore.RED}{message}{colorama.Fore.RESET}\n")
+
+        sys.exit(1) 
+
+
 # main parse function, need to pass in filename for printing errors
 # TODO: sure there is a better way to do this but it works for right now 
-def parse(text, filename, DEBUG=False):
+def parse(text, filename, debug):
     tokens = tokenize(text)
     if type(tokens) != list:
         raise ValueError("tokenize should return a list of tokens")
     
-    if DEBUG: 
+    if debug: 
         for tok in tokens:
             print(tok)
     

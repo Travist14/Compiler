@@ -15,6 +15,7 @@ def main():
     parser.add_argument('file', help='the file to be compiled')
     parser.add_argument('-t', '--tokenize', help='tokenize the file', action='store_true')
     parser.add_argument("-p", "--parse", help="parse the file", action="store_true")
+    parser.add_argument("-d", "--debug", help="print with debugging information", action="store_true", default=False)
     args = parser.parse_args()
 
     if not args.file.endswith('.c'):
@@ -27,7 +28,7 @@ def main():
         print_tokens(tokens)
     elif args.parse:
         text = read_file(args.file)
-        tree = parse(text, args.file, DEBUG=True) # Debug here will print tokens along with parse tree
+        tree = parse(text, args.file, args.debug) # Debug here will print tokens along with parse tree
         if tree is not None:
             print("-" * 60)
             print("\n\tParse Tree:")
