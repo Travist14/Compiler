@@ -1,4 +1,5 @@
 import sys
+from dataclasses import dataclass
 import colorama
 
 from tokenizer import tokenize
@@ -6,6 +7,12 @@ from tokenizer import tokenize
 index = 0
 errors = []
 symbol_table = []
+
+@dataclass
+class Symbol:
+    type: str
+    value: str
+    scope: str
 
 class ParseError(Exception):
     def __init__(self, message, token):
@@ -115,12 +122,15 @@ def parse_declaration(tokens):
         f["children"].append({"value": tokens[index].type})
         index += 1
         
-        symbol_table.append({"variable_name": tokens[index - 1].value, "type": tokens[index - 1].value})
     else:
         errors.append(ParseError("Expected an int to be declared", tokens[index]))
 
     if index < len(tokens) and tokens[index].type == "ID":
         f["children"].append({"value": tokens[index].value})
+
+        if Symbol(tokens[index - 1].type, tokens[index].value, "local") not in symbol_table:
+            symbol_table.append(Symbol(tokens[index - 1].type, tokens[index].value, "local"))
+
         index += 1
     else:
         errors.append(ParseError("Expected an ID after declaring an int", tokens[index]))
@@ -159,12 +169,6 @@ def parse_assignment(tokens):
         f["children"].append(expr)
     else:
         errors.append(ParseError("Expected expression for assignment", tokens[index]))
-
-    # TODO: maybe remove this? I dont know why this isn't needed but it double counts the last semicolon in the file if this is here. maybe index is being thrown off
-    # if index < len(tokens) and tokens[index].type == "SEMICOLON":
-    #     index += 1
-    # else:
-    #     errors.append(ParseError("Expected ';' for assignment", tokens[index]))
 
     return f
 
@@ -205,7 +209,6 @@ def parse_statement(tokens):
         else :
             errors.append(ParseError("Expected assignment", tokens[index]))
 
-        # # STUFF RIGHT HERE
         if index < len(tokens) and tokens[index].type == "SEMICOLON":
             index += 1
         else:
@@ -229,6 +232,9 @@ def parse_parameter(tokens):
 
     if tokens[index].type == "ID":
         f["children"].append({"value": tokens[index].value})
+        
+        symbol_table.append(Symbol(tokens[index - 1].type, tokens[index].value, "parameter"))
+        
         index += 1
 
     return f
@@ -261,7 +267,7 @@ def parse_function(tokens):
 
     f = {"children": [], "value": "FUNCTION"}
     if index < len(tokens) and tokens[index].type == "int" and tokens[index].value == "int": # only supporting int return types
-        f["children"].append({"value": "int"})
+        f["children"].append({"value": tokens[index].value})
         index += 1
     else:
         errors.append(ParseError("Expected 'int'", tokens[index]))
@@ -312,7 +318,6 @@ def parse_program(tokens):
     f = {"children": [], "value": None}
     f["value"] = "PROGRAM"
 
-    # TODO: make this its own function parse_function()
     while index < len(tokens):
         func = parse_function(tokens)
         if func:
@@ -363,3 +368,10 @@ def print_parse_tree(tree, indent=0):
         for child in tree['children']:
             print(f"{indentation}")
             print_parse_tree(child, indent + 4)
+
+
+def print_symbol_table():
+    print("\n\nSymbol Table:")
+    for symbol in symbol_table:
+        print(f"\ttype:{symbol.type}, value: {symbol.value}, scope: {symbol.scope}")
+    print("\n")

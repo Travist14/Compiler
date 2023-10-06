@@ -8,6 +8,8 @@ int main() {
 }
 
 int foo(int a) {
+    int c;
+    c = 4 + 12;
     return a;
 }
 
