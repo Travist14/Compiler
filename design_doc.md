@@ -29,6 +29,12 @@
 ###usage###:
     description: 
         this program takes in a c file and returns a parse tree for the given c file.
+
+    dependencies:
+        >= python3.8
+        
+        install dependencies:
+            pip3 install -r requirements.txt
         
     usage:
         python3 compiler.py <cfile>
