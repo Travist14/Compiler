@@ -288,54 +288,6 @@ def parse_program(tokens):
     return f
 
 
-def parse_single_param(tokens):
-    global index
-    global errors
-    global symbol_table
-
-    f = {"children": [], "value": "PARAM"}
-
-    if tokens[index].type == "int":
-        f["children"].append({"value": "int"})
-        index += 1
-    else: 
-        errors.append(ParseError("Expected 'int' parameter", tokens[index]))
-
-    if tokens[index].type == "ID":
-        f["children"].append({"value": tokens[index].value})
-        index += 1
-    else:
-        errors.append(ParseError("Expected parameter name", tokens[index]))
-
-    return f 
-
-
-def parse_params(tokens):
-    global index
-    global errors
-    global symbol_table
-
-    f = {"children": [], "value": "PARAMS"}
-    
-    if tokens[index].type == "L_PAREN":
-        index += 1
-        params = []
-        
-        while tokens[index].type != "R_PARAN":
-            param = parse_single_param(tokens)
-            if param:
-                params.append(param)
-            
-            if tokens[index].type == "COMMA":
-                index += 1
-
-        f["children"].append({"value": "PARAMS", "children": params})
-
-        index += 1
-            
-    return f
-
-
 # iterates over all the errors and print them out in a nice format 
 def handle_errors(filename):
     if len(errors) > 0:
