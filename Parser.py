@@ -260,6 +260,7 @@ def parse_parameters(tokens):
 
     return f
 
+
 def parse_function(tokens):
     global symbol_table
     global index
@@ -297,7 +298,7 @@ def parse_function(tokens):
     else:
         errors.append(ParseError("Expected '{'", tokens[index]))
 
-    while index < len(tokens) and tokens[index].type != "RBRACE":
+    while index < len(tokens) and tokens[index].type != "RBRACE": # TODO: chnage this to support conditionals and loops
         stmt = parse_statement(tokens)
         if stmt:
             f["children"].append(stmt)
@@ -315,8 +316,7 @@ def parse_program(tokens):
     global index
     global errors
 
-    f = {"children": [], "value": None}
-    f["value"] = "PROGRAM"
+    f = {"children": [], "value": "PROGRAM"}
 
     while index < len(tokens):
         func = parse_function(tokens)
@@ -352,7 +352,7 @@ def handle_errors(filename):
 
 # main parse function, need to pass in filename for printing errors
 # TODO: sure there is a better way to do this but it works for right now 
-def parse(tokens, filename, debug):
+def parse(tokens, filename):
     
     tree = parse_program(tokens)
     
@@ -370,6 +370,7 @@ def print_parse_tree(tree, indent=0):
             print_parse_tree(child, indent + 4)
 
 
+# print the associated symbol table
 def print_symbol_table():
     print("\n\nSymbol Table:")
     for symbol in symbol_table:

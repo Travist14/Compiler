@@ -18,7 +18,6 @@ def setup_arg_parser():
     parser.add_argument('file', help='the file to be compiled')
     parser.add_argument('-t', '--tokenize', help='tokenize the file', action='store_true')
     parser.add_argument("-p", "--parse", help="parse the file", action="store_true")
-    parser.add_argument("-d", "--debug", help="print with debugging information", action="store_true", default=False)
     args = parser.parse_args()
     return args
 
@@ -36,7 +35,7 @@ def main():
     if args.tokenize:
         print_tokens(tokens)
 
-    tree = parse(tokens, args.file, args.debug) # Debug will print tokens as well as other info for me when programming 
+    tree = parse(tokens, args.file) 
     if args.parse:
         print_parse_tree(tree)
         print_symbol_table()
