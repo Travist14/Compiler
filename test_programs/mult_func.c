@@ -6,3 +6,13 @@ int main() {
     a = a / b;
     return a;
 }
+
+int foo() {
+    return a;
+}
+
+int bar() {
+    int b;
+    b = 3 + 12;
+    return b;
+}
