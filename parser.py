@@ -161,7 +161,7 @@ def parse_assignment(tokens):
     else:
         errors.append(ParseError("Expected expression for assignment", tokens[index]))
 
-    # TODO: maybe remove this? I dont know why this isn't needed but it double counts the last semicolon in the file if this is here. maybe index is being thrown off, investigate later
+    # TODO: maybe remove this? I dont know why this isn't needed but it double counts the last semicolon in the file if this is here. maybe index is being thrown off
     # if index < len(tokens) and tokens[index].type == "SEMICOLON":
     #     index += 1
     # else:
@@ -215,7 +215,7 @@ def parse_statement(tokens):
         errors.append(ParseError("Expected 'return' or 'int'", tokens[index]))
 
     return f
-        
+
 
 # main program parser 
 def parse_program(tokens):
@@ -226,45 +226,46 @@ def parse_program(tokens):
     f = {"children": [], "value": None}
     f["value"] = "PROGRAM"
 
-    if index < len(tokens) and tokens[index].type == "int" and tokens[index].value == "int":
-        f["children"].append({"value": "int"})
-        index += 1
-    else:
-        errors.append(ParseError("Expected 'int'", tokens[index]))
-
-    if index < len(tokens) and tokens[index].type == "ID" and tokens[index].value == "main":
-        f["children"].append({"value": "main"})
-        index += 1
-    else:
-        errors.append(ParseError("Expected 'main'", tokens[index]))
-
-    if index < len(tokens) and tokens[index].type == "L_PAREN":
-        index += 1
-    else:
-        errors.append(ParseError("Expected '('", tokens[index]))
-
-    if index < len(tokens) and tokens[index].type == "R_PAREN":
-        index += 1
-    else:
-        errors.append(ParseError("Expected ')'", tokens[index]))
-
-    if index < len(tokens) and tokens[index].type == "LBRACE":
-        index += 1
-    else:
-        errors.append(ParseError("Expected '{'", tokens[index]))
-
-    while index < (len(tokens) - 1):
-        statement = parse_statement(tokens)
-        if statement:
-            f["children"].append(statement)
-
+    while index < len(tokens):
+        if index < len(tokens) and tokens[index].type == "int" and tokens[index].value == "int":
+            f["children"].append({"value": "int"})
+            index += 1
         else:
-            errors.append(ParseError("Expected statement", tokens[index]))
+            errors.append(ParseError("Expected 'int'", tokens[index]))
 
-    if index < len(tokens) and tokens[index].type == "RBRACE":
-        index += 1
-    else:
-        errors.append(ParseError("Expected '}'", tokens[index]))
+        if index < len(tokens) and tokens[index].type == "ID" and tokens[index].value == "main":
+            f["children"].append({"value": "main"})
+            index += 1
+        else:
+            errors.append(ParseError("Expected 'main'", tokens[index]))
+
+        if index < len(tokens) and tokens[index].type == "L_PAREN":
+            index += 1
+        else:
+            errors.append(ParseError("Expected '('", tokens[index]))
+
+        if index < len(tokens) and tokens[index].type == "R_PAREN":
+            index += 1
+        else:
+            errors.append(ParseError("Expected ')'", tokens[index]))
+
+        if index < len(tokens) and tokens[index].type == "LBRACE":
+            index += 1
+        else:
+            errors.append(ParseError("Expected '{'", tokens[index]))
+
+        while index < (len(tokens) - 1):
+            statement = parse_statement(tokens)
+            if statement:
+                f["children"].append(statement)
+
+            else:
+                errors.append(ParseError("Expected statement", tokens[index]))
+
+        if index < len(tokens) and tokens[index].type == "RBRACE":
+            index += 1
+        else:
+            errors.append(ParseError("Expected '}'", tokens[index]))
 
     return f
 
@@ -295,8 +296,6 @@ def handle_errors(filename):
 # main parse function, need to pass in filename for printing errors
 # TODO: sure there is a better way to do this but it works for right now 
 def parse(tokens, filename, debug):
-    
-    # this is a test testing testing one two three
     
     tree = parse_program(tokens)
     
