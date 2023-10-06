@@ -7,7 +7,7 @@ int main() {
     return a;
 }
 
-int foo() {
+int foo(int a) {
     return a;
 }
 

@@ -216,6 +216,44 @@ def parse_statement(tokens):
     return f
 
 
+def parse_parameter(tokens):
+    global index
+    global errors
+    global symbol_table
+    
+    f = {"children": [], "value": "PARAMETER"}
+    
+    if tokens[index].type == "int":
+        f["children"].append({"value": tokens[index].value})
+        index += 1
+
+    if tokens[index].type == "ID":
+        f["children"].append({"value": tokens[index].value})
+        index += 1
+
+    return f
+
+
+def parse_parameters(tokens):
+    global index
+    global errors
+    global symbol_table
+
+    f = {"children": [], "value": "PARAMETERS"}
+
+    if index < len(tokens) and tokens[index].type == "L_PAREN":
+        index += 1
+
+    while tokens[index].type != "R_PAREN":
+        param = parse_parameter(tokens)
+        if param:
+            f["children"].append(param)
+        
+        if tokens[index].type == "COMMA":
+            index += 1
+
+    return f
+
 def parse_function(tokens):
     global symbol_table
     global index
@@ -239,6 +277,10 @@ def parse_function(tokens):
     else:
         errors.append(ParseError("Expected '('", tokens[index]))
 
+    params = parse_parameters(tokens)
+    if params:
+        f["children"].append(params)
+
     if index < len(tokens) and tokens[index].type == "R_PAREN":
         index += 1
     else:
@@ -248,14 +290,6 @@ def parse_function(tokens):
         index += 1
     else:
         errors.append(ParseError("Expected '{'", tokens[index]))
-
-    # while index < (len(tokens) - 1):
-    #     statement = parse_statement(tokens)
-    #     if statement:
-    #         f["children"].append(statement)
-
-    #     else:
-    #         errors.append(ParseError("Expected statement", tokens[index]))
 
     while index < len(tokens) and tokens[index].type != "RBRACE":
         stmt = parse_statement(tokens)
@@ -280,7 +314,6 @@ def parse_program(tokens):
 
     # TODO: make this its own function parse_function()
     while index < len(tokens):
-
         func = parse_function(tokens)
         if func:
             f["children"].append(func)
