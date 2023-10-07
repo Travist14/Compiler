@@ -267,8 +267,7 @@ def parse_function(tokens):
     global errors
 
     f = {"children": [], "value": "FUNCTION"}
-    # if index < len(tokens) and tokens[index].type == "int" and tokens[index].value == "int": # only supporting int return types
-    if index < len(tokens) and tokens[index].type in ["int", "void"] and tokens[index].value in ["int", "void"]:
+    if index < len(tokens) and tokens[index].type in ["int", "void"] and tokens[index].value in ["int", "void"]: # support int and void function return types
         f["children"].append({"value": tokens[index].value})
         index += 1
     else:
