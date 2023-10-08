@@ -192,6 +192,7 @@ def parse_conditional(tokens, state):
 
     # if state.index < len(tokens) and tokens[state.index].type == "if" and tokens[state.index].value == "if":
     if state.index < len(tokens) and tokens[state.index].type in ["if", "while"]:
+        f["children"].append({"value": tokens[state.index].value})
         state.index += 1
 
     if state.index < len(tokens) and tokens[state.index].type == "L_PAREN":
