@@ -190,7 +190,8 @@ def parse_conditional(tokens, state):
 
     f = {"children": [], "value": "CONDITIONAL"}
 
-    if state.index < len(tokens) and tokens[state.index].type == "if" and tokens[state.index].value == "if":
+    # if state.index < len(tokens) and tokens[state.index].type == "if" and tokens[state.index].value == "if":
+    if state.index < len(tokens) and tokens[state.index].type in ["if", "while"]:
         state.index += 1
 
     if state.index < len(tokens) and tokens[state.index].type == "L_PAREN":
@@ -229,6 +230,7 @@ def parse_statement(tokens, state):
 
     f = {"children": [], "value": "STATEMENT"}
     
+    # return
     if state.index < len(tokens) and tokens[state.index].type == "return" and tokens[state.index].value == "return":
         f["children"].append({"value": "return"})
         state.index += 1 
@@ -243,13 +245,14 @@ def parse_statement(tokens, state):
             state.index += 1 
         else:
             state.errors.append(ParseError("Expected ';'", tokens[state.index]))
-
+    # declaration
     elif state.index < len(tokens) and tokens[state.index].type == "int":
         declaration = parse_declaration(tokens, state)
         if declaration:
             f["children"].append(declaration)
         else:
             state.errors.append(ParseError("Expected declaration", tokens[state.index]))
+    # assignment
     elif state.index < len(tokens) and tokens[state.index].type == "ID":
         assignment = parse_assignment(tokens, state)
         if assignment:
@@ -261,12 +264,11 @@ def parse_statement(tokens, state):
             state.index += 1
         else:
             state.errors.append(ParseError("Expected ';'", tokens[state.index]))
+    # conditionals and loops
     elif state.index < len(tokens) and tokens[state.index].type in ["if", "while"]:
         conditional = parse_conditional(tokens, state)
         if conditional:
             f["children"].append(conditional)
-        
-
     else:
         state.errors.append(ParseError("Expected 'return' or 'int'", tokens[state.index]))
 
