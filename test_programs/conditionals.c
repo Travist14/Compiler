@@ -1,12 +1,18 @@
 int main() {
     int a;
-    int b;
     a = 1;
-    b = 2;
-    if (a < b) {
-        a = 3;
+
+    int b;
+    if (a == 2) {
+        if (12 <= 13) {
+            b = 3;
+        }
+        a = 1;
     }
-    else {
-        b = 4;
+
+    if (2 < 3) {
+        b = 2;
     }
+
+    return 0;
 }

@@ -160,6 +160,64 @@ def parse_assignment(tokens, state):
     return f
 
 
+def parse_condition(tokens, state):
+
+    f = {"children": [], "value": "CONDITION"}
+
+    if state.index < len(tokens) and (tokens[state.index].type == "ID" or tokens[state.index].type == "NUMBER"):
+        f["children"].append({"value": tokens[state.index].value})
+        state.index += 1
+
+    if state.index < len(tokens) and tokens[state.index].type == "OP" and tokens[state.index].value in ["==", "!=", "<", ">", "<=", ">="]:
+        f["children"].append({"value": tokens[state.index].value})
+        state.index += 1
+
+    if state.index < len(tokens) and (tokens[state.index].type == "ID" or tokens[state.index].type == "NUMBER"):
+        f["children"].append({"value": tokens[state.index].value})
+        state.index += 1
+
+    return f
+
+
+def parse_conditional(tokens, state):
+
+    f = {"children": [], "value": "CONDITIONAL"}
+
+    if state.index < len(tokens) and tokens[state.index].type == "if" and tokens[state.index].value == "if":
+        state.index += 1
+
+    if state.index < len(tokens) and tokens[state.index].type == "L_PAREN":
+        state.index += 1
+    else:
+        state.errors.append(ParseError("Expected '('", tokens[state.index]))
+
+    pc = parse_condition(tokens, state) 
+    if pc:
+        f["children"].append(pc)
+    else:
+        state.errors.append(ParseError("Expected condition inside parentheses", tokens[state.index]))
+
+    if state.index < len(tokens) and tokens[state.index].type == "R_PAREN":
+        state.index += 1
+    else:
+        state.errors.append(ParseError("Expected ')'", tokens[state.index]))
+
+    if state.index < len(tokens) and tokens[state.index].type == "LBRACE":
+        state.index += 1
+        
+    while state.index < len(tokens) and tokens[state.index].type != "RBRACE":
+        stmt = parse_statement(tokens, state)
+        if stmt:
+            f["children"].append(stmt)
+        else:
+            state.errors.append(ParseError("Expected statement", tokens[state.index]))
+
+    if state.index < len(tokens) and tokens[state.index].type == "RBRACE":
+        state.index += 1 
+
+    return f
+
+
 def parse_statement(tokens, state):
 
     f = {"children": [], "value": "STATEMENT"}
@@ -196,6 +254,12 @@ def parse_statement(tokens, state):
             state.index += 1
         else:
             state.errors.append(ParseError("Expected ';'", tokens[state.index]))
+    elif state.index < len(tokens) and tokens[state.index].type in ["if", "while"]:
+        conditional = parse_conditional(tokens, state)
+        if conditional:
+            f["children"].append(conditional)
+        
+
     else:
         state.errors.append(ParseError("Expected 'return' or 'int'", tokens[state.index]))
 
