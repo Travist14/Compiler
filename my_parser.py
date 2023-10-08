@@ -136,8 +136,11 @@ def parse_assignment(tokens, state):
     f = {"children": [], "value": "ASSIGNMENT"}
 
     if state.index < len(tokens) and tokens[state.index].type == "ID":
-        f["children"].append({"value": tokens[state.index].value})
-        state.index += 1
+        if tokens[state.index].value in [symbol.value for symbol in state.symbol_table]: # check if the variable has been declared
+            f["children"].append({"value": tokens[state.index].value})
+            state.index += 1
+        else:
+            state.errors.append(ParseError("Variable never declared", tokens[state.index]))
     else:
         state.errors.append(ParseError("Expected an ID for assignment", tokens[state.index]))
 
@@ -234,10 +237,29 @@ def parse_parameters(tokens, state):
     return f
 
 
+# used to check if a void function returns a value
+def check_valid_void(tokens, state):
+    i = state.index
+    while i < len(tokens) and tokens[i].type != "RBRACE":
+        if tokens[i].type == "return":
+            return False
+        i += 1
+
+    return True
+
+
 def parse_function(tokens, state):
 
     f = {"children": [], "value": "FUNCTION"}
+
     if state.index < len(tokens) and tokens[state.index].type in ["int", "void"] and tokens[state.index].value in ["int", "void"]: # support int and void function return types
+
+        # if the function is void, then we check if "return" is in the function body
+        # if it is then error
+        if tokens[state.index].value == "void":
+            if not check_valid_void(tokens, state):
+                state.errors.append(ParseError("void function cannot return a value", tokens[state.index]))
+
         f["children"].append({"value": tokens[state.index].value})
         state.index += 1
     else:
