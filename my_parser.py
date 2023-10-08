@@ -60,7 +60,7 @@ def parse_term(tokens, state):
     if factor:
         f["children"].append(factor)
     else:
-        state.errors.append(ParseError("Expected factor", tokens[index]))
+        state.errors.append(ParseError("Expected factor", tokens[state.index]))
 
     while state.index < len(tokens) and tokens[state.index].type == "OP" and tokens[state.index].value in ["*", "/"]:
         f["value"] = tokens[state.index].value
@@ -241,13 +241,13 @@ def parse_function(tokens, state):
         f["children"].append({"value": tokens[state.index].value})
         state.index += 1
     else:
-        state.errors.append(ParseError("Expected 'int'", tokens[index]))
+        state.errors.append(ParseError("Expected 'int'", tokens[state.index]))
 
     if state.index < len(tokens) and tokens[state.index].type == "ID": 
         f["children"].append({"value": tokens[state.index].value})
         state.index += 1
     else:
-        state.errors.append(ParseError("Expected function name", tokens[index]))
+        state.errors.append(ParseError("Expected function name", tokens[state.index]))
 
     if state.index < len(tokens) and tokens[state.index].type == "L_PAREN":
         state.index += 1
@@ -276,7 +276,7 @@ def parse_function(tokens, state):
     if state.index < len(tokens) and tokens[state.index].type == "RBRACE":
         state.index += 1
     else:
-        state.errors.append(ParseError("Expected '}'", tokens[index]))
+        state.errors.append(ParseError("Expected '}'", tokens[state.index]))
 
     return f
 
