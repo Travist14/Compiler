@@ -2,17 +2,20 @@ import sys
 from dataclasses import dataclass
 import colorama
 
-from tokenizer import tokenize
 
-index = 0
-errors = []
-symbol_table = []
+@dataclass
+class RunState:
+    index: int
+    errors: list
+    symbol_table: list
+
 
 @dataclass
 class Symbol:
     type: str
     value: str
     scope: str
+
 
 class ParseError(Exception):
     def __init__(self, message, token):
@@ -25,301 +28,265 @@ class ParseError(Exception):
     
 
 # heavily inspired by the parse tree that we went over in class 
-def parse_expression(tokens):
-    global symbol_table
-    global index
-    global errors
+def parse_expression(tokens, state):
 
-    f = {"children": [], "value": None}
-    f["value"] = "EXPR"
+    f = {"children": [], "value": "EXPR"}
 
-    term = parse_term(tokens)
+    term = parse_term(tokens, state)
     if term:
         f["children"].append(term)
     else:
-        errors.append(ParseError("Expected term", tokens[index]))
+        state.errors.append(ParseError("Expected term", tokens[state.index]))
 
-    while index < len(tokens) and tokens[index].type == "OP" and tokens[index].value in ["+", "-"]:
-        f["value"] = tokens[index].value
-        index += 1
+    while state.index < len(tokens) and tokens[state.index].type == "OP" and tokens[state.index].value in ["+", "-"]:
+        f["value"] = tokens[state.index].value
+        state.index += 1
 
-        t = parse_expression(tokens)
+        t = parse_expression(tokens, state)
         if t:
             f["children"].append(t)
         else:
-            errors.append(ParseError("Expected expression", tokens[index]))
+            state.errors.append(ParseError("Expected expression", tokens[state.index]))
 
     return f
 
 
 # heavily inspired by the parse tree that we went over in class 
-def parse_term(tokens):
-    global symbol_table
-    global index
-    global errors
+def parse_term(tokens, state):
 
-    f = {"children": [], "value": None}
-    f["value"] = "TERM"
+    f = {"children": [], "value": "TERM"}
 
-    factor = parse_factor(tokens)
+    factor = parse_factor(tokens, state)
     if factor:
         f["children"].append(factor)
     else:
-        errors.append(ParseError("Expected factor", tokens[index]))
+        state.errors.append(ParseError("Expected factor", tokens[index]))
 
-    while index < len(tokens) and tokens[index].type == "OP" and tokens[index].value in ["*", "/"]:
-        f["value"] = tokens[index].value
-        index += 1
+    while state.index < len(tokens) and tokens[state.index].type == "OP" and tokens[state.index].value in ["*", "/"]:
+        f["value"] = tokens[state.index].value
+        state.index += 1
 
-        t = parse_term(tokens)
+        t = parse_term(tokens, state)
         if t:
             f["children"].append(t)
         else:
-            errors.append(ParseError("Expected term", tokens[index]))
+            state.errors.append(ParseError("Expected term", tokens[state.index]))
 
     return f
 
 
 # heavily inspired by the parse tree that we went over in class 
-def parse_factor(tokens):
-    global symbol_table
-    global index
-    global errors
+def parse_factor(tokens, state):
 
-    f = {"children": [], "value": None}
-    f["value"] = "FACTOR"
+    f = {"children": [], "value": "FACTOR"}
 
-    if index < len(tokens) and (tokens[index].type == "ID" or tokens[index].type == "NUMBER"):
-        f["value"] = tokens[index].value
-        index += 1
-    elif index < len(tokens) and tokens[index].type == "L_PAREN":
-        index += 1
-        expr = parse_expression(tokens)
+    if state.index < len(tokens) and (tokens[state.index].type == "ID" or tokens[state.index].type == "NUMBER"):
+        f["value"] = tokens[state.index].value
+        state.index += 1
+    elif state.index < len(tokens) and tokens[state.index].type == "L_PAREN":
+        state.index += 1
+        expr = parse_expression(tokens, state)
         if expr:
             f["children"].append(expr)
         else:
-            errors.append(ParseError("Expected expression", tokens[index]))
+            state.errors.append(ParseError("Expected expression", tokens[state.index]))
 
-        if index < len(tokens) and tokens[index].type != "R_PAREN":
-            errors.append(ParseError("Expected )", tokens[index]))
+        if state.index < len(tokens) and tokens[state.index].type != "R_PAREN":
+            state.errors.append(ParseError("Expected )", tokens[state.index]))
         else:
-            index += 1
+            state.index += 1
     else:
-        errors.append(ParseError("Expected ID, NUMBER, or (", tokens[index - 1]))
+        state.errors.append(ParseError("Expected ID, NUMBER, or (", tokens[state.index - 1]))
 
     return f
 
 
 # parse declaration will only parse int declarations and does not support assignment
-def parse_declaration(tokens):
-    global symbol_table
-    global index
-    global errors
+def parse_declaration(tokens, state):
 
     f = {"children": [], "value": "DECLARATION"}
     
-    if index < len(tokens) and tokens[index].type == "int": # Only aceepting int declarations 
-        f["children"].append({"value": tokens[index].type})
-        index += 1
+    if state.index < len(tokens) and tokens[state.index].type == "int": # Only aceepting int declarations 
+        f["children"].append({"value": tokens[state.index].type})
+        state.index += 1
         
     else:
-        errors.append(ParseError("Expected an int to be declared", tokens[index]))
+        state.errors.append(ParseError("Expected an int to be declared", tokens[state.index]))
 
-    if index < len(tokens) and tokens[index].type == "ID":
-        f["children"].append({"value": tokens[index].value})
+    if state.index < len(tokens) and tokens[state.index].type == "ID":
+        f["children"].append({"value": tokens[state.index].value})
 
-        if Symbol(tokens[index - 1].type, tokens[index].value, "local") not in symbol_table:
-            symbol_table.append(Symbol(tokens[index - 1].type, tokens[index].value, "local"))
+        if Symbol(tokens[state.index - 1].type, tokens[state.index].value, "local") not in state.symbol_table:
+            state.symbol_table.append(Symbol(tokens[state.index - 1].type, tokens[state.index].value, "local"))
 
-        index += 1
+        state.index += 1
     else:
-        errors.append(ParseError("Expected an ID after declaring an int", tokens[index]))
+        state.errors.append(ParseError("Expected an ID after declaring an int", tokens[state.index]))
 
-    if index < len(tokens) and tokens[index].type == "SEMICOLON":
-        index += 1
+    if state.index < len(tokens) and tokens[state.index].type == "SEMICOLON":
+        state.index += 1
     else:
-        errors.append(ParseError("Expected ';'", tokens[index]))
+        state.errors.append(ParseError("Expected ';'", tokens[state.index]))
 
     return f 
 
 
-def parse_assignment(tokens):
-    global symbol_table
-    global index
-    global errors
+def parse_assignment(tokens, state):
 
+    f = {"children": [], "value": "ASSIGNMENT"}
 
-    f = {"children": [], "value": None}
-    f["value"] = "ASSIGNMENT"
-
-    if index < len(tokens) and tokens[index].type == "ID":
-        f["children"].append({"value": tokens[index].value})
-        index += 1
+    if state.index < len(tokens) and tokens[state.index].type == "ID":
+        f["children"].append({"value": tokens[state.index].value})
+        state.index += 1
     else:
-        errors.append(ParseError("Expected an ID for assignment", tokens[index]))
+        state.errors.append(ParseError("Expected an ID for assignment", tokens[state.index]))
 
-    if index < len(tokens) and tokens[index].type == "ASSIGN":
+    if state.index < len(tokens) and tokens[state.index].type == "ASSIGN":
         f["children"].append({"value": "="})
-        index += 1
+        state.index += 1
     else:
-        errors.append(ParseError("Expected '=' for assignment", tokens[index]))
+        state.errors.append(ParseError("Expected '=' for assignment", tokens[state.index]))
 
-    expr = parse_expression(tokens)
+    expr = parse_expression(tokens, state)
     if expr:
         f["children"].append(expr)
     else:
-        errors.append(ParseError("Expected expression for assignment", tokens[index]))
+        state.errors.append(ParseError("Expected expression for assignment", tokens[state.index]))
 
     return f
 
 
-def parse_statement(tokens):
-    global symbol_table
-    global index
-    global errors
+def parse_statement(tokens, state):
 
-    f = {"children": [], "value": None}
-    f["value"] = "STATEMENT"
+    f = {"children": [], "value": "STATEMENT"}
     
-    if index < len(tokens) and tokens[index].type == "return" and tokens[index].value == "return":
+    if state.index < len(tokens) and tokens[state.index].type == "return" and tokens[state.index].value == "return":
         f["children"].append({"value": "return"})
-        index += 1 
+        state.index += 1 
         
-        expr = parse_expression(tokens)
+        expr = parse_expression(tokens, state)
         if expr:
             f["children"].append(expr)
         else:
-            errors.append(ParseError("Expected expression", tokens[index]))
+            state.errors.append(ParseError("Expected expression", tokens[state.index]))
 
-        if index < len(tokens) and tokens[index].type == "SEMICOLON":
-            index += 1 
+        if state.index < len(tokens) and tokens[state.index].type == "SEMICOLON":
+            state.index += 1 
         else:
-            errors.append(ParseError("Expected ';'", tokens[index]))
+            state.errors.append(ParseError("Expected ';'", tokens[state.index]))
 
-    elif index < len(tokens) and tokens[index].type == "int":
-        declaration = parse_declaration(tokens)
+    elif state.index < len(tokens) and tokens[state.index].type == "int":
+        declaration = parse_declaration(tokens, state)
         if declaration:
             f["children"].append(declaration)
         else:
-            errors.append(ParseError("Expected declaration", tokens[index]))
-    elif index < len(tokens) and tokens[index].type == "ID":
-        assignment = parse_assignment(tokens)
+            state.errors.append(ParseError("Expected declaration", tokens[state.index]))
+    elif state.index < len(tokens) and tokens[state.index].type == "ID":
+        assignment = parse_assignment(tokens, state)
         if assignment:
             f["children"].append(assignment)
         else :
-            errors.append(ParseError("Expected assignment", tokens[index]))
+            state.errors.append(ParseError("Expected assignment", tokens[state.index]))
 
-        if index < len(tokens) and tokens[index].type == "SEMICOLON":
-            index += 1
+        if state.index < len(tokens) and tokens[state.index].type == "SEMICOLON":
+            state.index += 1
         else:
-            errors.append(ParseError("Expected ';'", tokens[index]))
+            state.errors.append(ParseError("Expected ';'", tokens[state.index]))
     else:
-        errors.append(ParseError("Expected 'return' or 'int'", tokens[index]))
+        state.errors.append(ParseError("Expected 'return' or 'int'", tokens[state.index]))
 
     return f
 
 
-def parse_parameter(tokens):
-    global index
-    global errors
-    global symbol_table
+def parse_parameter(tokens, state):
     
     f = {"children": [], "value": "PARAMETER"}
     
-    if tokens[index].type == "int":
-        f["children"].append({"value": tokens[index].value})
-        index += 1
+    if tokens[state.index].type == "int":
+        f["children"].append({"value": tokens[state.index].value})
+        state.index += 1
 
-    if tokens[index].type == "ID":
-        f["children"].append({"value": tokens[index].value})
+    if tokens[state.index].type == "ID":
+        f["children"].append({"value": tokens[state.index].value})
         
-        symbol_table.append(Symbol(tokens[index - 1].type, tokens[index].value, "parameter"))
+        state.symbol_table.append(Symbol(tokens[state.index - 1].type, tokens[state.index].value, "parameter"))
         
-        index += 1
+        state.index += 1
 
     return f
 
 
-def parse_parameters(tokens):
-    global index
-    global errors
-    global symbol_table
+def parse_parameters(tokens, state):
 
     f = {"children": [], "value": "PARAMETERS"}
 
-    if index < len(tokens) and tokens[index].type == "L_PAREN":
-        index += 1
+    if state.index < len(tokens) and tokens[state.index].type == "L_PAREN":
+        state.index += 1
 
-    while tokens[index].type != "R_PAREN":
-        param = parse_parameter(tokens)
+    while tokens[state.index].type != "R_PAREN":
+        param = parse_parameter(tokens, state)
         if param:
             f["children"].append(param)
         
-        if tokens[index].type == "COMMA":
-            index += 1
+        if tokens[state.index].type == "COMMA":
+            state.index += 1
 
     return f
 
 
-def parse_function(tokens):
-    global symbol_table
-    global index
-    global errors
+def parse_function(tokens, state):
 
     f = {"children": [], "value": "FUNCTION"}
-    if index < len(tokens) and tokens[index].type in ["int", "void"] and tokens[index].value in ["int", "void"]: # support int and void function return types
-        f["children"].append({"value": tokens[index].value})
-        index += 1
+    if state.index < len(tokens) and tokens[state.index].type in ["int", "void"] and tokens[state.index].value in ["int", "void"]: # support int and void function return types
+        f["children"].append({"value": tokens[state.index].value})
+        state.index += 1
     else:
-        errors.append(ParseError("Expected 'int'", tokens[index]))
+        state.errors.append(ParseError("Expected 'int'", tokens[index]))
 
-    if index < len(tokens) and tokens[index].type == "ID": 
-        f["children"].append({"value": tokens[index].value})
-        index += 1
+    if state.index < len(tokens) and tokens[state.index].type == "ID": 
+        f["children"].append({"value": tokens[state.index].value})
+        state.index += 1
     else:
-        errors.append(ParseError("Expected function name", tokens[index]))
+        state.errors.append(ParseError("Expected function name", tokens[index]))
 
-    if index < len(tokens) and tokens[index].type == "L_PAREN":
-        index += 1
+    if state.index < len(tokens) and tokens[state.index].type == "L_PAREN":
+        state.index += 1
     else:
-        errors.append(ParseError("Expected '('", tokens[index]))
+        state.errors.append(ParseError("Expected '('", tokens[state.index]))
 
-    params = parse_parameters(tokens)
+    params = parse_parameters(tokens, state)
     if params:
         f["children"].append(params)
 
-    if index < len(tokens) and tokens[index].type == "R_PAREN":
-        index += 1
+    if state.index < len(tokens) and tokens[state.index].type == "R_PAREN":
+        state.index += 1
     else:
-        errors.append(ParseError("Expected ')'", tokens[index]))
+        state.errors.append(ParseError("Expected ')'", tokens[state.index]))
 
-    if index < len(tokens) and tokens[index].type == "LBRACE":
-        index += 1
+    if state.index < len(tokens) and tokens[state.index].type == "LBRACE":
+        state.index += 1
     else:
-        errors.append(ParseError("Expected '{'", tokens[index]))
+        state.errors.append(ParseError("Expected '{'", tokens[state.index]))
 
-    while index < len(tokens) and tokens[index].type != "RBRACE": # TODO: chnage this to support conditionals and loops
-        stmt = parse_statement(tokens)
+    while state.index < len(tokens) and tokens[state.index].type != "RBRACE": # TODO: chnage this to support conditionals and loops
+        stmt = parse_statement(tokens, state)
         if stmt:
             f["children"].append(stmt)
 
-    if index < len(tokens) and tokens[index].type == "RBRACE":
-        index += 1
+    if state.index < len(tokens) and tokens[state.index].type == "RBRACE":
+        state.index += 1
     else:
-        errors.append(ParseError("Expected '}'", tokens[index]))
+        state.errors.append(ParseError("Expected '}'", tokens[index]))
 
     return f
 
 # main program parser 
-def parse_program(tokens):
-    global symbol_table
-    global index
-    global errors
+def parse_program(tokens, state):
 
     f = {"children": [], "value": "PROGRAM"}
 
-    while index < len(tokens):
-        func = parse_function(tokens)
+    while state.index < len(tokens):
+        func = parse_function(tokens, state)
         if func:
             f["children"].append(func)
 
@@ -327,7 +294,7 @@ def parse_program(tokens):
 
 
 # iterates over all the errors and print them out in a nice format 
-def handle_errors(filename):
+def handle_errors(filename, errors):
     if len(errors) > 0:
         locations = []
         for error in errors:
@@ -350,15 +317,23 @@ def handle_errors(filename):
         sys.exit(1) 
 
 
-# main parse function, need to pass in filename for printing errors
+# main parse function, need to pass in filename for printing state.errors
 # TODO: sure there is a better way to do this but it works for right now 
 def parse(tokens, filename):
+
+    index = 0
+    errors = []
+    symbol_table = []
+
+    # state object that keeps track of everything in the parser, and is passed around to all the function
+    # tracks the index, current errors, and current symbol table
+    state = RunState(index, errors, symbol_table)
     
-    tree = parse_program(tokens)
+    tree = parse_program(tokens, state)
     
-    handle_errors(filename)
+    handle_errors(filename, state.errors)
     
-    return tree
+    return tree, state # TODO: returning state here so that we can return the symbol table to the main program
 
 # print the parse tree in a nice format
 def print_parse_tree(tree, indent=0):
@@ -371,8 +346,8 @@ def print_parse_tree(tree, indent=0):
 
 
 # print the associated symbol table
-def print_symbol_table():
+def print_symbol_table(state):
     print("\n\nSymbol Table:")
-    for symbol in symbol_table:
+    for symbol in state.symbol_table:
         print(f"\ttype:{symbol.type}, value: {symbol.value}, scope: {symbol.scope}")
     print("\n")

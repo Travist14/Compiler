@@ -1,7 +1,8 @@
 import argparse
 
 from tokenizer import tokenize, print_tokens
-from my_parser import parse, print_parse_tree, print_symbol_table 
+from my_parser import parse, print_parse_tree, print_symbol_table
+
 
 def read_file(filename):
     with open(filename, 'r') as f:
@@ -35,10 +36,10 @@ def main():
     if args.tokenize:
         print_tokens(tokens)
 
-    tree = parse(tokens, args.file) 
+    tree, state = parse(tokens, args.file) 
     if args.parse:
         print_parse_tree(tree)
-        print_symbol_table()
+        print_symbol_table(state)
 
 if __name__ == '__main__':
     main()
