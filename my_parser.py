@@ -168,13 +168,20 @@ def parse_condition(tokens, state):
         f["children"].append({"value": tokens[state.index].value})
         state.index += 1
 
-    if state.index < len(tokens) and tokens[state.index].type == "OP" and tokens[state.index].value in ["==", "!=", "<", ">", "<=", ">="]:
+    if state.index < len(tokens) and tokens[state.index].type == "OP" and tokens[state.index].value in ["==", "!=", "<", ">", "<=", ">="]: # all supported comparisons 
         f["children"].append({"value": tokens[state.index].value})
         state.index += 1
 
     if state.index < len(tokens) and (tokens[state.index].type == "ID" or tokens[state.index].type == "NUMBER"):
         f["children"].append({"value": tokens[state.index].value})
         state.index += 1
+
+
+    if state.index < len(tokens) and tokens[state.index].type == "OP" and tokens[state.index].value in ["&&", "||"]:
+        state.index += 1
+        pc = parse_condition(tokens, state)
+        if pc:
+            f["children"].append(pc) # TODO: the way that this currently works is that it creates a new child for each condition after a && or ||, maybe need to change this to create a new child on the same level as the first condition
 
     return f
 
