@@ -102,7 +102,7 @@ def parse_factor(tokens, state):
 
 
 # parse declaration will only parse int declarations and does not support assignment
-def parse_declaration(tokens, state):
+def parse_declaration(tokens, state, scope): # scope with either be local, global, or parameter
 
     f = {"children": [], "value": "DECLARATION"}
     
@@ -116,8 +116,21 @@ def parse_declaration(tokens, state):
     if state.index < len(tokens) and tokens[state.index].type == "ID":
         f["children"].append({"value": tokens[state.index].value})
 
-        if Symbol(tokens[state.index - 1].type, tokens[state.index].value, "local") not in state.symbol_table:
-            state.symbol_table.append(Symbol(tokens[state.index - 1].type, tokens[state.index].value, "local"))
+        
+        # TODO: need to figure out a way to handle scope for variables while also checking for double declarations
+
+        # # if Symbol(tokens[state.index - 1].type, tokens[state.index].value, "local") in state.symbol_table:
+        # #     state.errors.append(ParseError("Variable already declared", tokens[state.index]))
+        if Symbol(tokens[state.index - 1].type, tokens[state.index].value, "global") in state.symbol_table:
+            state.errors.append(ParseError("Variable already declared", tokens[state.index]))
+        else:
+            state.symbol_table.append(Symbol(tokens[state.index - 1].type, tokens[state.index].value, scope))
+        
+        # if (Symbol(tokens[state.index - 1].type, tokens[state.index].value, "local") or Symbol(tokens[state.index - 1].type, tokens[state.index].value, "global")) not in state.symbol_table:
+        #     state.symbol_table.append(Symbol(tokens[state.index - 1].type, tokens[state.index].value, scope)) 
+
+        # if (Symbol(tokens[state.index - 1].type, tokens[state.index].value, "local") not in state.symbol_table) and (Symbol(tokens[state.index - 1].type, tokens[state.index].value, "global") not in state.symbol_table):
+        #     state.symbol_table.append(Symbol(tokens[state.index - 1].type, tokens[state.index].value, scope))
 
         state.index += 1
     else:
@@ -248,7 +261,7 @@ def parse_statement(tokens, state):
             state.errors.append(ParseError("Expected ';'", tokens[state.index]))
     # declaration
     elif state.index < len(tokens) and tokens[state.index].type == "int":
-        declaration = parse_declaration(tokens, state)
+        declaration = parse_declaration(tokens, state, "local")
         if declaration:
             f["children"].append(declaration)
         else:
@@ -377,10 +390,25 @@ def parse_function(tokens, state):
 
     return f
 
+
+# checks to see if there are any global variables declared
+def check_if_global_vars(tokens, state):
+    if tokens[state.index + 2].type == "L_PAREN": # we know that a global declaration will take form "int x;" and function will take form "int main()"
+        return False
+    elif tokens[state.index + 2].type == "SEMICOLON":
+        return True
+
+    return False
+
 # main program parser 
 def parse_program(tokens, state):
 
     f = {"children": [], "value": "PROGRAM"}
+
+    while check_if_global_vars(tokens, state):
+        decl = parse_declaration(tokens, state, "global")
+        if decl:
+            f["children"].append(decl)
 
     while state.index < len(tokens):
         func = parse_function(tokens, state)
