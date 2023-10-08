@@ -3,7 +3,6 @@ import argparse
 from tokenizer import tokenize, print_tokens
 from my_parser import parse, print_parse_tree, print_symbol_table
 
-
 def read_file(filename):
     with open(filename, 'r') as f:
         text = f.read()
@@ -19,6 +18,7 @@ def setup_arg_parser():
     parser.add_argument('file', help='the file to be compiled')
     parser.add_argument('-t', '--tokenize', help='tokenize the file', action='store_true')
     parser.add_argument("-p", "--parse", help="parse the file", action="store_true")
+    parser.add_argument("--tac", help="generate three address code", action="store_true")
     args = parser.parse_args()
     return args
 
@@ -40,6 +40,9 @@ def main():
     if args.parse:
         print_parse_tree(tree)
         print_symbol_table(state)
+
+    if args.tac: 
+        print("Not implemented yet")
 
 if __name__ == '__main__':
     main()
