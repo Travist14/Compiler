@@ -140,6 +140,7 @@ def parse_assignment(tokens, state):
             f["children"].append({"value": tokens[state.index].value})
             state.index += 1
         else:
+            state.index += 1
             state.errors.append(ParseError("Variable never declared", tokens[state.index]))
     else:
         state.errors.append(ParseError("Expected an ID for assignment", tokens[state.index]))
