@@ -37,27 +37,23 @@ def print_ir(ir):
         print_tree(tree) # this can conceptually be thought of as pringting lines
 
 
-def convert_assign_to_tac(assignments):
-    for assign in assignments:
-        print(assign['children'][0]) # the variable will always be index 0
-        print(assign['children'][1]) # the assignment operator "=" will always be index 1
-        print(assign['children'][2]) # the expression will always be index 2
-        print("\n")
-        
-        print(len(assign['children']))
+# converts the assignment subtree into 3 address code
+def convert_assignment_to_tac(assignments):
+    tac = []
+    for assignment in assignments:
+        if 'children' in assignment:
+            print(assignment)
+            tac.append(assignment['children'][0]) # this will always be variable name
+            tac.append(assignment['children'][1]) # this will always be equals sign 
+      
+    return tac
 
 def convert_to_ir(tree, symbol_table):
 
-    print(tree)
+    ir = []
 
-    ir = [] # dont love ir as a list but works for right now, my intuition is that every entry is a line, also lists work well becuase I can reuse elements if needed 
+    ir += find_assignments(tree)
     
-    # ir += find_declarations(tree)
-    # ir += find_assignments(tree)
-    # print(ir)
+    print_ir(ir)
 
-    # print_ir(ir) 
-
-    assigns = find_assignments(tree)
-    convert_assign_to_tac(assigns)
-    print_ir(assigns)
+    ir = convert_assignment_to_tac(ir)
