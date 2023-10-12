@@ -458,7 +458,7 @@ def parse(tokens, filename):
     
     handle_errors(filename, state.errors)
     
-    return tree, state # TODO: returning state here so that we can return the symbol table to the main program
+    return tree, state 
 
 # print the parse tree in a nice format
 def print_parse_tree(tree, indent=0):
