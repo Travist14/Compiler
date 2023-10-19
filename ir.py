@@ -1,4 +1,3 @@
-import colorama
 
 # print the ast
 def print_ast(tree, indent=0):
@@ -8,18 +7,6 @@ def print_ast(tree, indent=0):
         for child in tree['children']:
             print(f"{indentation}")
             print_ast(child, indent + 4)
-
-
-def find_leaf_nodes(tree):
-    leaves = []
-    if 'children' in tree:
-        if tree['children'] == [] and tree['value'] not in ["PARAMETERS"]:
-            leaves.append(tree)
-        else:
-            for child in tree['children']:
-                leaves.extend(find_leaf_nodes(child))
-
-    return leaves
 
 
 def convert_parse_tree_to_ast(parse_tree):
@@ -35,8 +22,22 @@ def convert_parse_tree_to_ast(parse_tree):
     return ast
 
 
+def remove_empty_nodes(ast):
+    if not ast:
+        return None
+    if ast['value'] == '' and not ast['children']:
+        return None
+    else:
+        ast['children'] = [remove_empty_nodes(child) for child in ast['children']]
+        ast['children'] = [child for child in ast['children'] if child is not None]
+        return ast
+
+
+
 def convert_to_ir(tree, symbol_table):
 
     ast = convert_parse_tree_to_ast(tree)
+    ast = remove_empty_nodes(ast)
     print_ast(ast)
+    print(ast)
     
