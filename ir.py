@@ -22,22 +22,42 @@ def convert_parse_tree_to_ast(parse_tree):
     return ast
 
 
-def remove_empty_nodes(ast):
-    if not ast:
-        return None
-    if ast['value'] == '' and not ast['children']:
-        return None
-    else:
-        ast['children'] = [remove_empty_nodes(child) for child in ast['children']]
-        ast['children'] = [child for child in ast['children'] if child is not None]
-        return ast
-
-
+def ast_to_tac(ast):
+    tac = []
+    tmp_var = 0
+    
+    def gen_tmp():
+        nonlocal tmp_var 
+        tmp_var += 1
+        return f't{tmp_var}'
+    
+    def traverse(node):
+        if node['value'] == '=':
+            left = traverse(node['children'][0])
+            right = traverse(node['children'][2])
+            tmp = gen_tmp()
+            tac.append(f'{tmp} = {right}') 
+            tac.append(f'{left} = {tmp}')
+            return left
+        elif node['value'] == '+':
+            left = traverse(node['children'][0])
+            right = traverse(node['children'][2])
+            tmp = gen_tmp()
+            tac.append(f'{tmp} = {left} + {right}')
+            return tmp
+        else:
+            return node['value']
+            
+    traverse(ast)
+    return tac
+    
 
 def convert_to_ir(tree, symbol_table):
 
     ast = convert_parse_tree_to_ast(tree)
-    ast = remove_empty_nodes(ast)
     print_ast(ast)
     print(ast)
-    
+
+    ir = ast_to_tac(ast)
+
+    print(ir)
