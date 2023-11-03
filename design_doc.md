@@ -68,7 +68,8 @@
 ###Caveats###:
     * the only return types that are supported are int and void 
     * the only data type that is supported is int 
-    * for loops are not supported
+    * for loops are not supported, but while loops are
     * includes are not supported 
     * optimizations will sometimes break if you try to assign a variable to itself. e.g. if you had "a = a + 3 + 4;" could lead to the first variable being optimized away
+    * IR optimization is only supported on files with a single function
     
