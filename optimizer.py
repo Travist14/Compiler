@@ -15,8 +15,15 @@ def perform_constant_folding(ir):
                 # use regular expression matching to see if there are two numbers on the right side of the assignment
                 # if there are, then perform the operation and replace the line with the result
                 var = line.split("=")[0].strip()
+
                 match = re.search(r'(\d+) (\+|\-|\*|\/) (\d+)', line)
+
                 if match:
+                    
+                    # we could run into a situation where we have "a = t1 - 3" which would match the regex and be replaced with -2
+                    # handle this by making sure that the previous character is a space
+                    if line[match.start() - 1] != " ":
+                        continue
                     
                     left_operand = int(match.group(1))
                     operator = match.group(2)
@@ -36,116 +43,97 @@ def perform_constant_folding(ir):
     return ir
 
 
-# def perform_constat_propagation(ir):
-
-#     constant_variables = {}
-    
-#     assignment_regex = re.compile(r'(\w+)\s*=\s*(\d+)')
-    
-#     variable_regex = re.compile(r'\b\w+\b')
-
-#     for i, line in enumerate(ir):
-#         if type(line) != list:
-#             assignment_match = assignment_regex.match(line)
-#             if assignment_match:
-#                 variable, value = assignment_match.groups()
-#                 constant_variables[variable] = value
-
-# def perform_constant_propagation(ir):
-#     # Dictionary to store variable-constant pairs
-#     constant_variables = {}
-
-#     # Regular expression to match lines where a variable is assigned a constant
-#     assignment_regex = re.compile(r'(\w+)\s*=\s*(\d+)')
-
-#     # Regular expression to match variables
-#     variable_regex = re.compile(r'\b\w+\b')
-
-#     # Iterate over the IR
-#     for i, line in enumerate(ir):
-#         if type(line) != list:
-#             # If the line is a variable assignment to a constant
-#             assignment_match = assignment_regex.match(line)
-#             if assignment_match:
-#                 variable, value = assignment_match.groups()
-#                 constant_variables[variable] = value
-
-#             # If the line contains a variable that has been assigned a constant
-#             else:
-#                 variables_in_line = variable_regex.findall(line)
-#                 for variable in variables_in_line:
-#                     if variable in constant_variables:
-#                         # Replace the variable with its constant value
-#                         ir[i] = line.replace(variable, constant_variables[variable])
-
-#     return ir
-
-
-# def constant_propagation(three_address_code):
-#     # Regular expressions to match constants and variables.
-#     CONSTANT_REGEX = re.compile(r'^[0-9]+$')
-#     VARIABLE_REGEX = re.compile(r'^[a-z]+$')
-
-#     # A dictionary to store the values of constants.
-#     constant_values = {}
-
-#     # Iterate over the three address code statements.
-#     for statement in three_address_code:
-#         # Split the statement into its components.
-#         operator, left_operand, right_operand = statement.split()
-
-#         # If the left operand is a variable, update its value if it is a constant.
-#         if VARIABLE_REGEX.match(left_operand):
-#             if CONSTANT_REGEX.match(right_operand):
-#                 constant_values[left_operand] = int(right_operand)
-
-#         # If the right operand is a variable, replace it with its value if it is known.
-#         if VARIABLE_REGEX.match(right_operand) and right_operand in constant_values:
-#             right_operand = str(constant_values[right_operand])
-
-#         # Update the statement with the propagated values.
-#         statement = f'{operator} {left_operand} {right_operand}'
-
-#     # Return the updated three address code statements.
-#     return three_address_code
-
-
-
 def perform_constant_propagation(ir):
     
-    # regular expression to find a constant assignment
     assignment_regex = re.compile(r'(\w+)\s*=\s*(\d+)')
+
+    variable_regex = re.compile(r'\b\w+\b')
+
+    constant_variables = {}
 
     for i, line in enumerate(ir):
         if type(line) != list:
-            # check if line is constant assignment
             assignment_match = assignment_regex.match(line)
-            if assignment_match:
-                print(f"line: {line}")
-    # for i, line in enumerate(ir):
-    #     if type(line) != list:
-    #         # if the line is a constant assignment
-    #         assignment_match = assignment_regex.match(line)
-    #         if assignment_match:
-                
-    #             # get the variable and the value
-    #             variable, value = assignment_match.groups()
-    #             print(f"variable: {variable}, value: {value}")
+            
+            # make sure that the legnth of the line is the same as the length of the match becuase we could encounter situation where we have "t0 = 4 + a" which would match the regex but we don't want to replace it
+            if assignment_match and len(line) == len(assignment_match.group()):
+                variable, value = assignment_match.groups()
+                constant_variables[variable] = value
 
-    #             # iterate from the current line to the end of the IR
-    #             for j in range(i, len(ir)):
-    #                 if type(ir[j]) != list:
-    #                     if variable in ir[j]:
-    #                         ir[j] = ir[j].replace(variable, value)
+            else:
+                variables_in_line = variable_regex.findall(line)
 
+                for variable in variables_in_line:
+                    if variable in constant_variables:
+                        ir[i] = line.replace(variable, constant_variables[variable])
+                    
     return ir
 
 
+
 def run_optimizer(ir, symbol_table):
-    print(ir)
     
-    ir = perform_constant_folding(ir)
+
+    # iterate through the IR and optimize until we can't optimize anymore
+    while True:
+        old_ir = ir.copy()
+
+        ir = perform_constant_folding(ir)
+        ir = perform_constant_propagation(ir)
+        if ir == old_ir:
+            break
+            
     print_ir(ir)
 
-    ir = perform_constant_propagation(ir)
-    print_ir(ir)
+    
+    
+
+
+
+
+    # i = 0
+    # ir = perform_constant_folding(ir)
+    # print(f"{i} after constant folding:")
+    # print_ir(ir)
+    # i = i + 1
+
+    # ir = perform_constant_propagation(ir)
+    # print("after constant propagation:")
+    # print_ir(ir)
+    # i = i + 1
+
+    # ir = perform_constant_folding(ir)
+    # print("after constant folding:")
+    # print_ir(ir)
+    # i = i + 1
+
+    # ir = perform_constant_propagation(ir)
+    # print("after constant propagation:")
+    # print_ir(ir)
+    # i = i + 1
+
+    # ir = perform_constant_folding(ir)
+    # print("after constant folding:")
+    # print_ir(ir)
+    # i = i + 1
+
+    # ir = perform_constant_propagation(ir)
+    # print("after constant propagation:")
+    # print_ir(ir)
+    # i = i + 1
+
+    # ir = perform_constant_folding(ir)
+    # print("after constant folding:")
+    # print_ir(ir)
+
+    # ir = perform_constant_propagation(ir)
+    # print("after constant propagation:")
+    # print_ir(ir)
+
+    # ir = perform_constant_folding(ir)
+    # print("after constant folding:")
+    # print_ir(ir)
+
+    # ir = perform_constant_propagation(ir)
+    # print("after constant propagation:")
+    # print_ir(ir)

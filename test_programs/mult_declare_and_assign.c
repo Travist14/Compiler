@@ -4,5 +4,4 @@ int main() {
     int b;
     b = 8;
     a = a / b;
-    return a;
 }
