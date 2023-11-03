@@ -7,5 +7,5 @@ int main() {
     c = a * b;
     b = 8;
     int d;
-    d = b - 6 + 4 + 8;
+    d = b + 6 + 4 + 8;
 }
