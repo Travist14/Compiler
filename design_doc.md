@@ -27,7 +27,7 @@
     The parse tree returned by this program is a full parse tree for the given c file. It retains syntax and structure based on the grammar above. 
 
 ###Intermediate Representation###:
-    The intermediate representation returned by this program is a three address code maintains much of the original semantic meaning of the program
+    The intermediate representation returned by this program is a three address code that maintains the original semantic meaning of the program
 
 ###Optimization###
     The only two optimizations that are supported are constant folding and constant propagation. 
