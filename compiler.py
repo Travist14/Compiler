@@ -2,7 +2,8 @@ import argparse
 
 from tokenizer import tokenize, print_tokens
 from my_parser import parse, print_parse_tree, print_symbol_table
-from ir import convert_to_ir
+from ir import convert_to_ir, print_ir
+from optimizer import run_optimizer 
 
 def read_file(filename):
     with open(filename, 'r') as f:
@@ -20,6 +21,7 @@ def setup_arg_parser():
     parser.add_argument('-t', '--tokenize', help='tokenize the file', action='store_true')
     parser.add_argument("-p", "--parse", help="parse the file", action="store_true")
     parser.add_argument("-i", "--intermediate-representation", help="generate three address code", action="store_true")
+    parser.add_argument("-o", "--optimize", help="optimizes the IR", action="store_true")
     args = parser.parse_args()
     return args
 
@@ -42,9 +44,13 @@ def main():
         print_parse_tree(tree)
         print_symbol_table(state)
 
+    ir = convert_to_ir(tree, state.symbol_table)
     if args.intermediate_representation:
-        convert_to_ir(tree, state.symbol_table)
-        
+        print_ir(ir)
+
+    if args.optimize:
+        if ir is not None:
+            run_optimizer(ir, state.symbol_table)
 
 if __name__ == '__main__':
     main()

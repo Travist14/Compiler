@@ -15,6 +15,7 @@ class Symbol:
     type: str
     value: str
     scope: str
+    
 
 
 class ParseError(Exception):
