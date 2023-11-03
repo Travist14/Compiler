@@ -134,6 +134,9 @@ def generate_expression_code(ast, symbol_table):
         code.append(f"{temp_var} = {left_code[-1]} / {right_code[-1]}")
         return code + [temp_var]
 
+    # this elif was auto generated, shouldn't be needed but I had issues when I deleted it
+    # TODO: figure this out and fix it later 
+    # this should be what is causing extra vars to be added to the ir, but for right now handle it by just removing them
     elif isinstance(ast['value'], int):
         return [str(ast['value'])]
 
