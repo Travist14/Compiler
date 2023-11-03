@@ -24,11 +24,18 @@
     factor -> ID | NUMBER | '(' expression ')'
 
 ###tree###:
-    The tree returned by this program is a full parse tree for the given c file. It retains syntax and structure based on the grammar above. 
+    The parse tree returned by this program is a full parse tree for the given c file. It retains syntax and structure based on the grammar above. 
+
+###Intermediate Representation###:
+    The intermediate representation returned by this program is a three address code maintains much of the original semantic meaning of the program
+
+###Optimization###
+    The only two optimizations that are supported are constant folding and constant propagation. 
+    optimizations are only supported for a single function. Optimizations performed on files with more than one function may break the IR
 
 ###usage###:
     description: 
-        this program takes in a c file and returns a parse tree for the given c file.
+        this program takes in a c file and parses that c file into a parse tree and then converts that parse tree into an intermediate representation with the option to optimize that intermediate representation
 
     dependencies:
         >= python3.8
@@ -44,21 +51,24 @@
             will print the list of tokens in the input c file to the screen 
         -p or --parse
             will print the full parse tree to the screen as well as its associated symbol table
+        -i 
+            prints out the unoptimized intermediate representation
+        -o or --optimize
+            prints out the optimized intermediate representation
         -h or --help
             will print help information to the screen
 
 
     example usage:
         python3 compiler.py -t -p test_programs/mult_func.c
-        python3 compiler.py -p test_programs/mult_declare_and_assign.c 
+        python3 compiler.py -p -i -o test_programs/mult_declare_and_assign.c 
         python3 compiler.py -t test_programs/params.c 
 
 
 ###Caveats###:
-    * the only return type that is supported is int 
+    * the only return types that are supported are int and void 
     * the only data type that is supported is int 
-    * conditionals are not supported
-    * loops are not supported 
-    * global variables are not supported
+    * for loops are not supported
     * includes are not supported 
+    * optimizations will sometimes break if you try to assign a variable to itself. e.g. if you had "a = a + 3 + 4;" could lead to the first variable being optimized away
     
