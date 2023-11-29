@@ -336,6 +336,14 @@ def check_valid_void(tokens, state):
 
     return True
 
+def check_valid_return_type(tokens, state):
+    i = state.index
+    while i < len(tokens) and tokens[i].type != "RBRACE":
+        if tokens[i].type == "return":
+            return True
+        i += 1
+    
+    return False
 
 def parse_function(tokens, state):
 
@@ -348,11 +356,17 @@ def parse_function(tokens, state):
         if tokens[state.index].value == "void":
             if not check_valid_void(tokens, state):
                 state.errors.append(ParseError("void function cannot return a value", tokens[state.index]))
+        
+        # if the function type is int, then we need to make sure that the function returns a value
+        if tokens[state.index].value == "int":
+            if not check_valid_return_type(tokens, state):
+                state.errors.append(ParseError("int function must return a value", tokens[state.index]))
+            
 
         f["children"].append({"value": tokens[state.index].value})
         state.index += 1
     else:
-        state.errors.append(ParseError("Expected 'int'", tokens[state.index]))
+        state.errors.append(ParseError("Expected function return type", tokens[state.index]))
 
     if state.index < len(tokens) and tokens[state.index].type == "ID": 
         f["children"].append({"value": tokens[state.index].value})
