@@ -3,8 +3,7 @@ int main() {
     a = (7 + 8) * 2 / 4 + 16;
     int b;
     b = 8;
-    a = a / b
-    return a;
+    a = a / b;
 }
 
 void foo(int a) {

@@ -181,6 +181,7 @@ def transform_ir(ir):
 
 
 def print_ir(ir):
+    print("\n-------------- Intermediate Representation --------------")
     for line in ir:
         if type(line) == list:
             print(line[0])
