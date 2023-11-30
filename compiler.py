@@ -4,6 +4,7 @@ from tokenizer import tokenize, print_tokens
 from my_parser import parse, print_parse_tree, print_symbol_table
 from ir import convert_to_ir, print_ir
 from optimizer import run_optimizer 
+from graph_coloring import perform_graph_coloring
 from backend import convert_to_backend, print_backend
 
 def read_file(filename):
@@ -23,6 +24,7 @@ def setup_arg_parser():
     parser.add_argument("-p", "--parse", help="parse the file", action="store_true")
     parser.add_argument("-i", "--intermediate-representation", help="generate three address code", action="store_true")
     parser.add_argument("-o", "--optimize", help="optimizes the IR", action="store_true")
+    parser.add_argument("-g", "--graph-coloring", help="performs graph coloring", action="store_true")
     parser.add_argument("-b", "--backend", help="prints out the x86 code", action="store_true")
     args = parser.parse_args()
     return args
@@ -53,6 +55,9 @@ def main():
     if args.optimize:
         if ir is not None:
             run_optimizer(ir, state.symbol_table)
+
+    if args.graph_coloring:
+        perform_graph_coloring()
     
     if args.backend:
         backend = convert_to_backend(ir, state.symbol_table)

@@ -119,6 +119,7 @@ def convert_to_backend(ir, symbol_table):
     output.extend(setup_postamble(ir))
     for line in output:
         print(line)
+            
 
 def print_backend(backend):
     print("\n-------------- x86 Code --------------")
