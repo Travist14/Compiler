@@ -25,7 +25,6 @@ def num_local_variables(ir):
 def setup_preamble(ir):
     stack_space = num_local_variables(ir) * 4 + 4
     output = []
-    output.append("")
     output.append("push rbp")
     output.append("mov rbp, rsp")
     output.append(f"sub rsp, {stack_space}") # reserve 32 bytes for local variables
@@ -35,11 +34,19 @@ def setup_preamble(ir):
 def setup_postamble(ir):
     return ["pop rbp", "ret"]
 
-def convert(ir, symbol_table):
-    
-    output = setup_preamble(ir)
-    # print(output)
 
+def ir_to_asm(ir):
+    output = []
+    return output
+
+
+def convert_to_backend(ir, symbol_table):
+    
+    print(ir)
+    output = []
+    output.append("main:")
+    output.extend(setup_preamble(ir))
+    output.extend(ir_to_asm(ir))
     output.extend(setup_postamble(ir))
     
     return output
@@ -47,7 +54,7 @@ def convert(ir, symbol_table):
 def print_backend(backend):
     print("\n-------------- x86 Code --------------")
     for line in backend:
-        if type(line) == list:
-            print(line[0])
+        if ":" in line:
+            print(line)
         else:
             print("    " + line)

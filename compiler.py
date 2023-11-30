@@ -4,7 +4,7 @@ from tokenizer import tokenize, print_tokens
 from my_parser import parse, print_parse_tree, print_symbol_table
 from ir import convert_to_ir, print_ir
 from optimizer import run_optimizer 
-from backend import convert, print_backend
+from backend import convert_to_backend, print_backend
 
 def read_file(filename):
     with open(filename, 'r') as f:
@@ -55,7 +55,7 @@ def main():
             run_optimizer(ir, state.symbol_table)
     
     if args.backend:
-        backend = convert(ir, state.symbol_table)
+        backend = convert_to_backend(ir, state.symbol_table)
         print_backend(backend)
 
 if __name__ == '__main__':

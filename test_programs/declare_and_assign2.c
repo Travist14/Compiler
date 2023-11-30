@@ -7,4 +7,5 @@ int main() {
 
     int c;
     c = a + b * 4 - 5;
+    return c;
 }

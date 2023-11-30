@@ -156,9 +156,11 @@ def generate_three_address_code(ast, symbol_table):
         for child in ast['children']:
             code.extend(generate_three_address_code(child, symbol_table))
     elif ast['value'] == "DECLARATION":
-        var_type = ast['children'][0]['value']
-        variable_name = ast['children'][1]['value']
-        code.append(f"{var_type} {variable_name}")
+        # this block of code appends a variable delcaration but we dont need this for ir so just pass
+        pass
+        # var_type = ast['children'][0]['value']
+        # variable_name = ast['children'][1]['value']
+        # code.append(f"{var_type} {variable_name}")
 
     elif ast['value'] == "ASSIGNMENT":
         left_operand = ast['children'][0]['value']
