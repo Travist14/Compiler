@@ -50,7 +50,6 @@ def main():
 
     ir = convert_to_ir(tree, state.symbol_table)
     if args.intermediate_representation:
-        print(ir)
         print_ir(ir)
 
     if args.optimize:
