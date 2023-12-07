@@ -168,6 +168,10 @@ def generate_three_address_code(ast, symbol_table):
         code.extend(expression_code)
         code.append(f"{left_operand} = {expression_code[-1]}")
 
+    # the way the AST is set up if I see an EXPR I know its a return statement
+    elif ast['value'] == "EXPR":
+        code.append("return " + str(ast['children'][0]['value']))
+
     return code
 
 

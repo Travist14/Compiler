@@ -47,67 +47,180 @@ def is_register(operand):
 
 
 # def ir_to_asm(ir):
-#     asm_lines = []
-
-#     size = 0
+#     asm = []
+#     temp_counter = 0
+#     var_offset = 4
 
 #     for line in ir:
-#         if type(line) == list:
+#         if line[0].endswith(':'):
+#             # asm.append(line[0])
 #             continue
-#         elif "=" in line:
-#             parts = line.split(" ")
-#             dest = parts[0]
-#             size += 4
-#             expr = parts[2:]
-
-#             if "+" in expr or "-" in expr or "*" in expr or "/" in expr:
-#                 # Arithmetic operation
-#                 asm_lines.append(Line(instruction="mov", op1=expr[0], op2=f"[rbp-{size}]"))
-#                 asm_lines.append(Line(instruction="add", op1=expr[2], op2=f"[rbp-{size}]"))
-
+#         else:
+#             tokens = line.split(' ')
+#             if tokens[0] == "return":
+#                 asm.append(f"mov eax, DWORD PTR [rbp-{var_offset-4}]")
+#             elif tokens[1] == '=':
+#                 if '+' in tokens:
+#                     asm.append(f'mov eax, DWORD PTR [rbp-{var_offset}]')
+#                     asm.append(f'add eax, {tokens[2]}')
+#                     asm.append(f'mov DWORD PTR [rbp-{var_offset}], eax')
+#                 elif '*' in tokens:
+#                     asm.append(f'mov eax, DWORD PTR [rbp-{var_offset}]')
+#                     asm.append(f'lea edx, [0+rax*4]')
+#                     asm.append(f'mov DWORD PTR [rbp-{var_offset}], edx')
+#                 elif '-' in tokens:
+#                     asm.append(f'mov eax, DWORD PTR [rbp-{var_offset}]')
+#                     asm.append(f'sub eax, {tokens[2]}')
+#                     asm.append(f'mov DWORD PTR [rbp-{var_offset}], eax')
+#                 else:
+#                     asm.append(f'mov DWORD PTR [rbp-{var_offset}], {tokens[2]}')
+#                 var_offset += 4
 #             else:
-#                 # Assignment of a constant
-#                 asm_lines.append(Line(instruction="mov", op1=expr[0], op2=f"[rbp-{size}]"))
+#                 asm.append(f'mov DWORD PTR [rbp-{var_offset}], {tokens[0]}')
+#                 var_offset += 4
 
-#     return asm_lines
+#     return asm
 
-def ir_to_asm(ir):
-    asm = []
-    temp_counter = 0
-    var_offset = 4
 
-    for line in ir:
-        if line[0].endswith(':'):
-            # asm.append(line[0])
-            continue
-        else:
-            tokens = line.split(' ')
-            if tokens[1] == '=':
-                if '+' in tokens:
-                    asm.append(f'mov eax, DWORD PTR [rbp-{var_offset}]')
-                    asm.append(f'add eax, {tokens[2]}')
-                    asm.append(f'mov DWORD PTR [rbp-{var_offset}], eax')
-                elif '*' in tokens:
-                    asm.append(f'mov eax, DWORD PTR [rbp-{var_offset}]')
-                    asm.append(f'lea edx, [0+rax*4]')
-                    asm.append(f'mov DWORD PTR [rbp-{var_offset}], edx')
-                elif '-' in tokens:
-                    asm.append(f'mov eax, DWORD PTR [rbp-{var_offset}]')
-                    asm.append(f'sub eax, {tokens[2]}')
-                    asm.append(f'mov DWORD PTR [rbp-{var_offset}], eax')
+# def ir_to_asm(intermediate_representation):
+#     assembly_code = []
+#     memory_location = -4
+#     for line in intermediate_representation:
+#         if '=' in line:
+#             left, right = line.split('=')
+#             left = left.strip()
+#             right = right.strip()
+#             if '+' in right:
+#                 operand1, operand2 = right.split('+')
+#                 operand1 = operand1.strip()
+#                 operand2 = operand2.strip()
+#                 if operand1.isdigit():
+#                     assembly_code.append(f'mov eax, {operand1}')
+#                 else:
+#                     assembly_code.append(f'mov eax, DWORD PTR [rbp{memory_location}]')
+#                 if operand2.isdigit():
+#                     assembly_code.append(f'add eax, {operand2}')
+#                 else:
+#                     assembly_code.append(f'add eax, DWORD PTR [rbp{memory_location}]')
+#                 memory_location -= 4
+#                 assembly_code.append(f'mov DWORD PTR [rbp{memory_location}], eax')
+#             elif '*' in right:
+#                 operand1, operand2 = right.split('*')
+#                 operand1 = operand1.strip()
+#                 operand2 = operand2.strip()
+#                 if operand1.isdigit():
+#                     assembly_code.append(f'mov eax, {operand1}')
+#                 else:
+#                     assembly_code.append(f'mov eax, DWORD PTR [rbp{memory_location}]')
+#                 if operand2.isdigit():
+#                     assembly_code.append(f'imul eax, {operand2}')
+#                 else:
+#                     assembly_code.append(f'imul eax, DWORD PTR [rbp{memory_location}]')
+#                 memory_location -= 4
+#                 assembly_code.append(f'mov DWORD PTR [rbp{memory_location}], eax')
+#             elif '-' in right:
+#                 operand1, operand2 = right.split('-')
+#                 operand1 = operand1.strip()
+#                 operand2 = operand2.strip()
+#                 if operand1.isdigit():
+#                     assembly_code.append(f'mov eax, {operand1}')
+#                 else:
+#                     assembly_code.append(f'mov eax, DWORD PTR [rbp{memory_location}]')
+#                 if operand2.isdigit():
+#                     assembly_code.append(f'sub eax, {operand2}')
+#                 else:
+#                     assembly_code.append(f'sub eax, DWORD PTR [rbp{memory_location}]')
+#                 memory_location -= 4
+#                 assembly_code.append(f'mov DWORD PTR [rbp{memory_location}], eax')
+#             else:
+#                 assembly_code.append(f'mov DWORD PTR [rbp{memory_location}], {right}')
+#         elif 'return' in line:
+#             assembly_code.append(f'mov eax, DWORD PTR [rbp{memory_location}]')
+
+#     return assembly_code
+
+
+
+
+
+
+
+
+def ir_to_asm(intermediate_representation):
+    assembly_code = []
+    memory_location = -4
+    temp_vars = {}
+    for line in intermediate_representation:
+        if '=' in line:
+            left, right = line.split('=')
+            left = left.strip()
+            right = right.strip()
+            if '+' in right:
+                operand1, operand2 = right.split('+')
+                operand1 = operand1.strip()
+                operand2 = operand2.strip()
+                if operand1.isdigit():
+                    assembly_code.append(f'mov eax, {operand1}')
                 else:
-                    asm.append(f'mov DWORD PTR [rbp-{var_offset}], {tokens[2]}')
-                var_offset += 4
+                    assembly_code.append(f'mov eax, DWORD PTR [rbp{temp_vars[operand1]}]')
+                if operand2.isdigit():
+                    assembly_code.append(f'add eax, {operand2}')
+                else:
+                    assembly_code.append(f'add eax, DWORD PTR [rbp{temp_vars[operand2]}]')
+                memory_location -= 4
+                assembly_code.append(f'mov DWORD PTR [rbp{memory_location}], eax')
+            elif '*' in right:
+                operand1, operand2 = right.split('*')
+                operand1 = operand1.strip()
+                operand2 = operand2.strip()
+                if operand1.isdigit():
+                    assembly_code.append(f'mov eax, {operand1}')
+                else:
+                    assembly_code.append(f'mov eax, DWORD PTR [rbp{temp_vars[operand1]}]')
+                if operand2.isdigit():
+                    assembly_code.append(f'imul eax, {operand2}')
+                else:
+                    assembly_code.append(f'imul eax, DWORD PTR [rbp{temp_vars[operand2]}]')
+                memory_location -= 4
+                assembly_code.append(f'mov DWORD PTR [rbp{memory_location}], eax')
+            elif '-' in right:
+                operand1, operand2 = right.split('-')
+                operand1 = operand1.strip()
+                operand2 = operand2.strip()
+                if operand1.isdigit():
+                    assembly_code.append(f'mov eax, {operand1}')
+                else:
+                    assembly_code.append(f'mov eax, DWORD PTR [rbp{temp_vars[operand1]}]')
+                if operand2.isdigit():
+                    assembly_code.append(f'sub eax, {operand2}')
+                else:
+                    assembly_code.append(f'sub eax, DWORD PTR [rbp{temp_vars[operand2]}]')
+                memory_location -= 4
+                assembly_code.append(f'mov DWORD PTR [rbp{memory_location}], eax')
             else:
-                asm.append(f'mov DWORD PTR [rbp-{var_offset}], {tokens[0]}')
-                var_offset += 4
+                if right.isdigit():
+                    assembly_code.append(f'mov DWORD PTR [rbp{memory_location}], {right}')
+                else:
+                    # assembly_code.append(f'mov DWORD PTR [rbp{memory_location}], DWORD PTR [rbp{temp_vars[right]}]')
+                    pass
+            temp_vars[left] = memory_location
+        elif 'return' in line:
+            assembly_code.append(f'mov eax, DWORD PTR [rbp{memory_location}]')
 
-    return asm
+    return assembly_code
+
+
+
+
+
+
+
+
 
     
 def convert_to_backend(ir, symbol_table):
     
-    print(ir)
+    # print(ir)
     output = []
     output.extend(setup_preamble(ir))
     output.extend(ir_to_asm(ir))
