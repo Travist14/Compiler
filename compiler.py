@@ -61,7 +61,7 @@ def main():
     
     if args.backend:
         backend = convert_to_backend(ir, state.symbol_table)
-        print_backend(backend)
+        # print_backend(backend)
 
 if __name__ == '__main__':
     main()

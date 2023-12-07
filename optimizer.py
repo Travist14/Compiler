@@ -8,6 +8,25 @@ def print_ir(ir):
             print("    " + line)
 
 
+def perform_dead_code_elimination(ir):
+    new_ir = []
+    for i, line in enumerate(ir):
+        if type(line) == list:
+            new_ir.append(line)
+            continue
+        
+        variable = line.split("=")[0].strip()
+        # print(f"Checking if {variable} is used again")
+
+        # iterate through the rest of the ir to see if the variable is used again
+
+        for j in range(i + 1, len(ir)):
+            if variable in ir[j]:
+                new_ir.append(line)
+                break
+
+    return new_ir
+
 def perform_constant_folding(ir):
     for i, line in enumerate(ir):
         if type(line) != list:
@@ -82,7 +101,11 @@ def run_optimizer(ir, symbol_table):
         ir = perform_constant_propagation(ir)
         if ir == old_ir:
             break
+
+    
             
     print_ir(ir)
 
+    # ir = perform_dead_code_elimination(ir)
+    # print_ir(ir)
     

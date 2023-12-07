@@ -195,7 +195,7 @@ def convert_to_ir(tree, symbol_table):
     
     # conver the parse tree into an AST
     ast = get_ast(tree)
-
+    print_ast(ast)
     tac = generate_three_address_code(ast, symbol_table)
     ir = transform_ir(tac)
 

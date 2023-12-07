@@ -113,3 +113,6 @@ def perform_graph_coloring():
     print("\nColoring of graph 2 (Welsh-Powell)")
     welsh_powell_coloring(g2, len(g2))
 
+
+# TODO: liveness stuff, overlap, 
+# 

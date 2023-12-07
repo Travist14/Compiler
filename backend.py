@@ -24,7 +24,7 @@ def num_local_variables(ir):
 
     return num
             
-
+# TODO: switch src dest
 def setup_preamble(ir):
     stack_space = num_local_variables(ir) * 4 + 4
     output = []
@@ -49,82 +49,89 @@ def is_register(operand):
 # def ir_to_asm(ir):
 #     asm_lines = []
 
-#     for line in ir:
+#     size = 0
 
+#     for line in ir:
 #         if type(line) == list:
 #             continue
-#         elif "+" in line:
-#             op1 = line.split(" ")[0]
-#             op2 = line.split(" ")[2]
-
-#             if is_register(op1):
-#                 if is_register(op2):
-#                     asm_lines.append(Line(instruction=f"add {op1}, {op2}"))
-#                 else:
-#                     asm_lines.append(Line(instruction=f"add {op1}, [rbp-{op2}]"))
-#             else:
-#                 if is_register(op2):
-#                     asm_lines.append(Line(instruction=f"add [rbp-{op1}], {op2}"))
-#                 else:
-#                     asm_lines.append(Line(instruction=f"add [rbp-{op1}], [rbp-{op2}]"))
-#         elif "*" in line:
-#             op1 = line.split(" ")[0]
-#             op2 = line.split(" ")[2]
-#             if is_register(op1):
-#                 asm_lines.append(Line(instruction=f"imul {op1}, [rbp-{op2}]"))
-#             else:
-#                 asm_lines.append(Line(instruction=f"imul [rbp-{op1}], [rbp-{op2}]"))
 #         elif "=" in line:
-#             op1 = line.split(" ")[0]
-#             op2 = line.split(" ")[2]
-#             if is_register(op2):
-#                 asm_lines.append(Line(instruction=f"mov {op1}, {op2}"))
+#             parts = line.split(" ")
+#             dest = parts[0]
+#             size += 4
+#             expr = parts[2:]
+
+#             if "+" in expr or "-" in expr or "*" in expr or "/" in expr:
+#                 # Arithmetic operation
+#                 asm_lines.append(Line(instruction="mov", op1=expr[0], op2=f"[rbp-{size}]"))
+#                 asm_lines.append(Line(instruction="add", op1=expr[2], op2=f"[rbp-{size}]"))
+
 #             else:
-#                 asm_lines.append(Line(instruction=f"mov {op1}, [rbp-{op2}]"))
+#                 # Assignment of a constant
+#                 asm_lines.append(Line(instruction="mov", op1=expr[0], op2=f"[rbp-{size}]"))
 
 #     return asm_lines
 
-
 def ir_to_asm(ir):
-    asm_lines = []
-
-    size = 0
+    asm = []
+    temp_counter = 0
+    var_offset = 4
 
     for line in ir:
-        if type(line) == list:
+        if line[0].endswith(':'):
+            # asm.append(line[0])
             continue
-        elif "=" in line:
-            parts = line.split(" ")
-            dest = parts[0]
-            size += 4
-            expr = parts[2:]
-
-            if "+" in expr or "-" in expr or "*" in expr or "/" in expr:
-                # Arithmetic operation
-                asm_lines.append(Line(instruction="mov", op1=expr[0], op2=f"[rbp-{size}]"))
-                asm_lines.append(Line(instruction="add", op1=expr[2], op2=f"[rbp-{size}]"))
-
+        else:
+            tokens = line.split(' ')
+            if tokens[1] == '=':
+                if '+' in tokens:
+                    asm.append(f'mov eax, DWORD PTR [rbp-{var_offset}]')
+                    asm.append(f'add eax, {tokens[2]}')
+                    asm.append(f'mov DWORD PTR [rbp-{var_offset}], eax')
+                elif '*' in tokens:
+                    asm.append(f'mov eax, DWORD PTR [rbp-{var_offset}]')
+                    asm.append(f'lea edx, [0+rax*4]')
+                    asm.append(f'mov DWORD PTR [rbp-{var_offset}], edx')
+                elif '-' in tokens:
+                    asm.append(f'mov eax, DWORD PTR [rbp-{var_offset}]')
+                    asm.append(f'sub eax, {tokens[2]}')
+                    asm.append(f'mov DWORD PTR [rbp-{var_offset}], eax')
+                else:
+                    asm.append(f'mov DWORD PTR [rbp-{var_offset}], {tokens[2]}')
+                var_offset += 4
             else:
-                # Assignment of a constant
-                asm_lines.append(Line(instruction="mov", op1=expr[0], op2=f"[rbp-{size}]"))
+                asm.append(f'mov DWORD PTR [rbp-{var_offset}], {tokens[0]}')
+                var_offset += 4
 
-    return asm_lines
+    return asm
 
     
 def convert_to_backend(ir, symbol_table):
     
+    print(ir)
     output = []
     output.extend(setup_preamble(ir))
     output.extend(ir_to_asm(ir))
     output.extend(setup_postamble(ir))
-    for line in output:
-        print(line)
-            
+
+    print_backend(output)
+    print_asm_to_file(output)
+
 
 def print_backend(backend):
     print("\n-------------- x86 Code --------------")
     for line in backend:
-        if ":" in line:
+        # print(line)
+        if line == "main:":
             print(line)
         else:
-            print("    " + line)
+            print("    ", line)
+
+
+# print the output to an asm file
+def print_asm_to_file(backend):
+    with open('output.asm', 'w') as f:
+        for line in backend:
+            if line == "main:":
+                f.write(line + '\n')
+            else:
+                f.write("    " + line + '\n')
