@@ -45,6 +45,7 @@ def color_graph(graph, num_colors):
         if not available_colors:
             return None  # Graph is not colorable
         colors[node] = available_colors.pop()
+    print(f"The colors are given by {colors}")
     return colors
 
 
