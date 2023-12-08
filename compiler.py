@@ -7,6 +7,11 @@ from optimizer import run_optimizer
 from graph_coloring import perform_graph_coloring
 from backend import convert_to_backend, print_backend
 
+# testing stuff
+import register_allocation_graph_coloring as register_allocation 
+from register_allocation_graph_coloring import Dec, Use, Instruction, IntermediateLanguage, Graph
+
+
 def read_file(filename):
     with open(filename, 'r') as f:
         text = f.read()
@@ -58,6 +63,7 @@ def main():
 
     if args.graph_coloring:
         perform_graph_coloring()
+        
     
     if args.backend:
         backend = convert_to_backend(ir, state.symbol_table)

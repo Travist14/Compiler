@@ -33,6 +33,10 @@
     The only two optimizations that are supported are constant folding and constant propagation. 
     optimizations are only supported for a single function. Optimizations performed on files with more than one function may break the IR
 
+###Backend###
+    The backend is a simple assembly language that is generated from the IR. The backend is only supported for files with a single function.
+    There is an implementatin of a graph coloring algorithm for register allocatioin that is not fully working
+
 ###usage###:
     description: 
         this program takes in a c file and parses that c file into a parse tree and then converts that parse tree into an intermediate representation with the option to optimize that intermediate representation
@@ -57,6 +61,11 @@
             prints out the optimized intermediate representation
         -h or --help
             will print help information to the screen
+        -b or --backend
+            prints the outputed assembly code
+
+        -g 
+            prints two examples of a graph coloring algorithm 
 
 
     example usage:
@@ -72,4 +81,5 @@
     * includes are not supported 
     * optimizations will sometimes break if you try to assign a variable to itself. e.g. if you had "a = a + 3 + 4;" could lead to the first variable being optimized away
     * IR optimization is only supported on files with a single function
+    * ouptuting backend only supported for files with one function
     
