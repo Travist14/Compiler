@@ -56,7 +56,7 @@ def allocate_registers(ir, num_registers):
             return {var: f"r{color}" for var, color in colors.items()}
         # Spill a variable to memory
         var_to_spill = min(graph, key=lambda var: len(graph[var]))
-        print(f"Spilling {var_to_spill}")
+        # print(f"Spilling {var_to_spill}")
         ir = [line.replace(var_to_spill, f"[{var_to_spill}]") for line in ir]
 
 
@@ -331,10 +331,7 @@ def convert_to_backend(ir, symbol_table):
     print_backend(output)
 
 
-
-
-
-    print("WORKING VERSION BELOW")
+    print("\n")
     output2 = []
     output2.extend(setup_preamble(ir))
     output2.extend(ir_to_asm(ir))
