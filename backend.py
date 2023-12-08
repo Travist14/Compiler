@@ -323,6 +323,7 @@ def ir_to_asm_graph_coloring(intermediate_representation):
     
 def convert_to_backend(ir, symbol_table):
     
+    print("\n\n-------Janky Graph Coloring version---------")
     output = []
     output.extend(setup_preamble(ir))
     output.extend(graph_coloring_ir_to_asm(ir, 4))    
@@ -338,6 +339,7 @@ def convert_to_backend(ir, symbol_table):
     output2.extend(setup_postamble(ir))
 
 
+    print_asm_to_file(output2)
     print_backend(output2)
 
 
@@ -615,6 +617,10 @@ def print_asm_to_file(backend):
 
 
 
+
+
+
+# https://github.com/johnflanigan/graph-coloring-via-register-allocation/tree/master
 class Dec:
     def __init__(self, reg: str, dead: bool):
         self.reg = reg
